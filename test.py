@@ -180,7 +180,7 @@ if __name__ == "__main__":
 				elif is_camerascam:
 					heatmap = gen_cam(cam_type='cameras', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index, change_input_shape=change_input_shape)
 
-			if cam_count > 1:
+			if cam_count == 1:
 				#Create superimposed heatmap image frame
 				super_image_array = get_superimposed_image(org_image_array, heatmap)
 				super_image_array = np.array(super_image_array)
