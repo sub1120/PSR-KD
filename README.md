@@ -74,4 +74,7 @@ optional arguments:
 ||||                                                           |    NASNetLarge      |   15    |
 ||||                                                           |    EnsembleModel    |   16    |
 
-### Sample Output from Usage 3
+### Sample Output
+|     Model Name      |   Output|
+| ------------------- | --------|
+| KD-EfficientNetB0 (Best Student) | ![Output](https://github.com/sub1120/PSR-KD/blob/master/out/Cams/KD-EfficientNetB0.png) |
