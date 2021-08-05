@@ -25,7 +25,8 @@ Use following command
     5. *eval_utils.py*: All other required functions are defined here.
 - *notebooks :* Contains all Training, Evaluation and Other Notebooks.
 - *test.py :* A simple script to try our all models, usage is defined below. 
-
+- models : All trained models. [models drive link](https://drive.google.com/drive/folders/1gwIjRJpe0_Qdcl9JMxfxNz191klWTFka?usp=sharing)
+- ds : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1HUP62HfK24o-G0KLshGGVCG44-dX2b3E?usp=sharing)
 
 ## Usage
 ```python test.py [-h] [-o OUTPUT_PATH] [-m MODEL_INDEX] [-v] [-c] [-p] [-s] [-k] [-g] ```
