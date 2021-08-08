@@ -8,12 +8,10 @@ from utils.cam_utils import get_img_array, get_superimposed_image, gen_cam,  get
 from utils.load_utils import init_models
 
 #Import other required modules
-from tf_keras_vis.utils import num_of_gpus
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import tkinter as tk
 import numpy as np
-import argparse
 import cv2
 
 #Define Constants
@@ -22,6 +20,9 @@ TOTAL_CLASSES = 199
 BATCH_SIZE = 4
 FONT_SIZE = 10
 DPI = 600
+
+#Input Modes
+MODES = ['IMAGE MODE', 'VIDEO MODE']
 
 #List all model files
 DISTILLED_STUDENT_FILES = ['KD-DenseNet121', 'KD-EfficientNetB0', 'KD-NASNetMobile', 'KD-MobileNetV2', 'KD-Custom-CNN']
@@ -52,70 +53,19 @@ def softmax(arr):
 		arr[i] = ex/np.sum(ex)
 	return arr
 
-def init_arg_parser():
-	arg_parser = argparse.ArgumentParser(description='Testing Script', epilog='')
-	arg_parser.add_argument("-o", "--output_path", help="Output dicrectory", default='out/Cams/')
-	arg_parser.add_argument("-m", "--model_index", help="Model index", default=1)
-	arg_parser.add_argument("-v", "--video_mode", help="Enable video mode", action='store_true' ,default=False)
-	arg_parser.add_argument("-c", "--gradcam", help="Obtain Grad Cam", action="store_true", default=False)
-	arg_parser.add_argument("-p", "--gradcamplus", help="Obtain Grad Cam++", action="store_true", default=False)
-	arg_parser.add_argument("-s", "--scorecam", help="Obtain Faster Score Cam", action="store_true", default=False)
-	arg_parser.add_argument("-k", "--camerascam", help="Obtain CAMERAS Cam", action="store_true", default=False)
-	arg_parser.add_argument("-g", "--enable_gpu", help="Enable GPU", action="store_true", default=False)
-	return arg_parser
+def process_frame(org_img_array, preprocess_func, rescale):
+	img_array = cv2.cvtColor(org_img_array, cv2.COLOR_BGR2GRAY)							#Convert image to Gray
+	_,img_array = cv2.threshold(img_array, 127, 255, cv2.THRESH_BINARY)					#Apply thresholding
+	img_array = cv2.cvtColor(img_array, cv2.COLOR_GRAY2BGR)								#Convert back image to RGB
+	img_array = get_img_array(img_array, IMAGE_SIZE, preprocess_func, rescale)			#Apply preprocesing of model
+	return img_array
 
-if __name__ == "__main__":
-
-	#Initialize argument parser
-	arg_parser = init_arg_parser()
-	args = arg_parser.parse_args()
-
-	#Get arguments
-	model_index = args.model_index
-	output_path = args.output_path
-	is_video_mode = args.video_mode
-	is_gradcam = args.gradcam
-	is_gradcamplus = args.gradcamplus
-	is_scorecam = args.scorecam
-	is_camerascam = args.camerascam
-	is_gpu = args.enable_gpu
-
-	#Check Arguements validity
+def main(is_video_mode, model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, input_files):
+	tf.config.set_visible_devices([], 'GPU')
 	cam_count = [is_scorecam, is_gradcamplus, is_gradcam, is_camerascam].count(True)
-	if is_video_mode:
-		if cam_count > 1:
-			print("[ERROR] Please Select any only one Cam type from Grad-Cam, Grad-Cam++, Faster Score-Cam and CAMERAS")
-			print("[INFO] Done")
-			exit()
-	else:
-		if cam_count == 0:
-			print("[WARN] Cam Type Not Selected")
-
-	#Check gpu availability
-	if is_gpu:
-		_, gpus = num_of_gpus()
-		print('[INFO] Tensorflow recognized {} GPUs'.format(gpus))
-	else:
-		tf.config.set_visible_devices([], 'GPU')
-
-	#Create {index:model_name} dictionary
-	index_model = {}
-	for i in range(len(MODEL_FILES)):
-		index_model[i] = MODEL_FILES[i]
 
 	#Load {index:classs_name} dictionary
 	index_class = index_class_dict()
-
-	#Obtain model name from model index
-	model_name = index_model[int(model_index)]
-
-	if model_name == 'EnsembleModel' and cam_count > 1:
-		print("[WARN] CAMs for EnsembleModel are Still Under Development")
-		cam_count = 0
-		is_gradcam = False
-		is_gradcamplus = False
-		is_scorecam = False
-		is_camerascam = False
 
 	#Load required model
 	all_models = init_models([model_name])
@@ -149,7 +99,8 @@ if __name__ == "__main__":
 		capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 		if not capture.isOpened():
 			print("[ERROR]: Could not open video device")
-		
+
+		print("[INFO] Press 'q' to stop Camera")
 		start = (175,125)
 		end = (475,400)
 		loop = 0
@@ -161,7 +112,7 @@ if __name__ == "__main__":
 			org_image_array = frame[start[1]:end[1], start[0]:end[0]]								
 			
 			#Preprocess frame
-			image_array = get_img_array(org_image_array, IMAGE_SIZE, preprocess_func, rescale)
+			image_array = process_frame(org_image_array, preprocess_func, rescale)
 										
 			#Prediction
 			preds = model.predict(np.expand_dims(image_array, axis=0))
@@ -204,48 +155,6 @@ if __name__ == "__main__":
 		capture.release()
 		cv2.destroyAllWindows()
 	else:
-		class ChooseInput:
-			def __init__(self, root):
-				self.root = root
-				self.root.title("Choose Input Images")
-
-				self.b1 = tk.Button(master=root, text="SELECT IMAGES", command=self.add_input_path)
-				self.b1.pack(expand=True)
-				
-				self.vartext = tk.StringVar()
-				self.vartext.set("0 Selected")
-				self.l1 = tk.Label(master=root, textvariable=self.vartext, fg="blue")
-				self.l1.pack()
-
-				self.b2 = tk.Button(master=root, text="GET PREDICTIONS & CAMS",command=self.close)
-				self.b2.pack(expand=True)
-
-				self.input_files = []
-
-			def add_input_path(self):
-				input_path = tk.filedialog.askopenfilenames(title="Select an Image File", initialdir ='./',filetypes=[
-                    																				("image", ".jpeg"),
-                    																				("image", ".png"),
-                    																				("image", ".jpg"),
-                    																				])
-				self.input_files.extend(input_path)
-				self.vartext.set(str(len(self.input_files)) + " Selected")
-
-			def close(self):
-				self.root.destroy()
-
-		root = tk.Tk()
-		root.resizable(False, False)
-		root.geometry('300x100+500+300')
-		my_gui = ChooseInput(root)
-		root.mainloop()
-
-		input_files = my_gui.input_files
-		if len(input_files) == 0: 
-			print("[INFO] No Input Selected")
-			print("[INFO] Done")
-			exit()
-
 		#Load and preprocess Images
 		input_images = []
 		for j in tqdm(range(len(input_files)),desc = "[INFO] Loading Images", ncols=80):
@@ -347,7 +256,8 @@ if __name__ == "__main__":
 				j += 1
 
 			i += (cam_count + 1)
-
+		output_path = 'out/Cams'
 		savefigure(output_path, model_name)
 		plt.show()	
+		plt.close('all')
 	print("[INFO] Done.")
