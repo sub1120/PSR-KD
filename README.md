@@ -25,7 +25,8 @@ Use following command
     5. *eval_utils.py*: All other required functions are defined here.
 - *notebooks :* Contains all Training, Evaluation and Other Notebooks.
 - *test.py :* A simple script to try our all models, usage is defined below. 
-
+- models : All trained models. [models drive link](https://drive.google.com/drive/folders/1gwIjRJpe0_Qdcl9JMxfxNz191klWTFka?usp=sharing)
+- ds : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1HUP62HfK24o-G0KLshGGVCG44-dX2b3E?usp=sharing)
 
 ## Usage
 ```python test.py [-h] [-o OUTPUT_PATH] [-m MODEL_INDEX] [-v] [-c] [-p] [-s] [-k] [-g] ```
@@ -54,13 +55,14 @@ optional arguments:
 
 - **Usage 3:** Use *IMAGE MODE* for prediction.
 
-> ```python test.py --input_path sample_images --output_path out --model_index 1```
+> ```python test.py --output_path 'out/Cams/' --model_index 1```
 
 - **Usage 4:** Use *IMAGE MODE* for prediction with Cams Output.
 
-> ```python test.py --input_path sample_images --output_path out --model_index 1 --gradcam --gradcamplus```
+> ```python test.py --output_path 'out/Cams/' --model_index 1 --gradcam --gradcamplus --scorecam --camerascam```
 
-**Note:** In *VIDEO MODE* enable only one cam type, but in *IMAGE MODE* you can enable multiple Cams.
+**Note 1:** In *VIDEO MODE* enable only one cam type, but in *IMAGE MODE* you can enable multiple Cams.
+**Note 2:** In *IMAGE MODE* input images are taken using a simple GUI appears automatically on running above command.
  
 ***Use below Model Indexes***
 
@@ -74,4 +76,7 @@ optional arguments:
 ||||                                                           |    NASNetLarge      |   15    |
 ||||                                                           |    EnsembleModel    |   16    |
 
-### Sample Output from Usage 3
+### Sample Output using Usage 4 command.
+|     Model Name      |   Output|
+| ------------------- | --------|
+| KD-EfficientNetB0 (Best Student) | ![Output](https://github.com/sub1120/PSR-KD/blob/master/out/Cams/KD-EfficientNetB0.png) |
