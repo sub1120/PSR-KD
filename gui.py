@@ -114,8 +114,10 @@ class ChooseInput:
 		#Disable Select Image Button in VIDEO MODE
 		if self.droptext1.get() == "VIDEO MODE":
 			self.b1.config( state= 'disabled')
+			self.b2.config(state='normal')
 		else:
 			self.b1.config( state= 'normal')
+			self.b2.config(state='disabled')
 
 		#Uncheck all checkboxes
 		self.check1.set(False)
