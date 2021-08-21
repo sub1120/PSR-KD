@@ -198,66 +198,83 @@ def main(is_video_mode, model_name, is_gradcam, is_gradcamplus, is_scorecam, is_
 				cam_images[file_name]['cameras'] = gen_cam(cam_type='cameras', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index, change_input_shape=change_input_shape)
 
 		#Plot Cams
-		i = 0
-		rows, cols = (len(cam_images), cam_count + 1)
-		plt.figure(figsize=(12, 12))
-		plt.title("CAMS")
-		for j in tqdm(range(len(input_files)),desc = "[INFO] Plotting Cams", ncols=80):
-			file_name = input_files[j]
-			org_img = load_img(file_name)
-			org_img = get_img_array(org_img, IMAGE_SIZE)
-			pred_index = predictions[j]
-			score = scores[j]
-			
-			j = 1
-			#Plot Original Image
-			plt.subplot(rows, cols, i + j)
-			plt.imshow(org_img/255.0)
-			plt.xticks([])
-			plt.yticks([])
-			plt.title("Predicted: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
-			j += 1
-		
-			#Plot Superimposed heatmap on Original Image
-			if is_gradcam:
-				gradcam_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcam'])
-				plt.subplot(rows, cols, i + j)
-				plt.imshow(gradcam_super_img)
-				plt.xticks([])
-				plt.yticks([])
-				plt.title("Grad-CAM", fontsize=FONT_SIZE)
-				j += 1
-			
-			if is_gradcamplus:
-				gradcampp_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcampp'])
-				plt.subplot(rows, cols, i + j)
-				plt.imshow(gradcampp_super_img)
-				plt.xticks([])
-				plt.yticks([])
-				plt.title("Grad-Cam++", fontsize=FONT_SIZE)
-				j += 1
-			
-			if is_scorecam:
-				scorecam_super_img = get_superimposed_image(org_img, cam_images[file_name]['scorecam'])
-				plt.subplot(rows, cols, i + j)
-				plt.imshow(scorecam_super_img)
-				plt.xticks([])
-				plt.yticks([])
-				plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
-				j += 1
-			
-			if is_camerascam:
-				cameras_super_img = get_superimposed_image(org_img, cam_images[file_name]['cameras'])
-				plt.subplot(rows, cols, i + j)
-				plt.imshow(cameras_super_img)
-				plt.xticks([])
-				plt.yticks([])
-				plt.title("Cameras-Cam", fontsize=FONT_SIZE)
-				j += 1
+		TEXT_MODE = False
+		print("[INFO] Plotting Cams")
+		OUTPUT_PATH = 'out/Cams/' + model_name + '/'
+		for _ in range(2):
+			i = 0
+			if TEXT_MODE:
+				rows, cols = (len(cam_images), cam_count + 1)
+			else:
+				rows, cols = (1, 5)
+			plt.figure(figsize=(12, 12))
+			if TEXT_MODE: plt.title("CAMS")
+			for j in range(len(input_files)):
+				file_name = input_files[j]
+				actual_class = file_name.split('/')[-1].split('.')[0]
 
-			i += (cam_count + 1)
-		output_path = 'out/Cams'
-		savefigure(output_path, model_name)
-		plt.show()	
-		plt.close('all')
+				org_img = load_img(file_name)
+				org_img = get_img_array(org_img, IMAGE_SIZE)
+				pred_index = predictions[j]
+				score = scores[j]
+				
+				j = 1
+				#Plot Original Image
+				plt.subplot(rows, cols, i + j)
+				plt.imshow(org_img/255.0)
+				plt.xticks([])
+				plt.yticks([])
+				if TEXT_MODE: plt.title("Predicted: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
+				j += 1
+			
+				#Plot Superimposed heatmap on Original Image
+				if is_gradcam:
+					gradcam_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcam'])
+					plt.subplot(rows, cols, i + j)
+					plt.imshow(gradcam_super_img)
+					plt.xticks([])
+					plt.yticks([])
+					if TEXT_MODE: plt.title("Grad-CAM", fontsize=FONT_SIZE)
+					j += 1
+				
+				if is_gradcamplus:
+					gradcampp_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcampp'])
+					plt.subplot(rows, cols, i + j)
+					plt.imshow(gradcampp_super_img)
+					plt.xticks([])
+					plt.yticks([])
+					if TEXT_MODE: plt.title("Grad-Cam++", fontsize=FONT_SIZE)
+					j += 1
+				
+				if is_scorecam:
+					scorecam_super_img = get_superimposed_image(org_img, cam_images[file_name]['scorecam'])
+					plt.subplot(rows, cols, i + j)
+					plt.imshow(scorecam_super_img)
+					plt.xticks([])
+					plt.yticks([])
+					if TEXT_MODE: plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
+					j += 1
+				
+				if is_camerascam:
+					cameras_super_img = get_superimposed_image(org_img, cam_images[file_name]['cameras'])
+					plt.subplot(rows, cols, i + j)
+					plt.imshow(cameras_super_img)
+					plt.xticks([])
+					plt.yticks([])
+					if TEXT_MODE: plt.title("Cameras-Cam", fontsize=FONT_SIZE)
+					j += 1
+
+				if not TEXT_MODE: 
+					savefigure(OUTPUT_PATH, actual_class + '-' + index_class[pred_index] + '(' + score + ')')
+					plt.close('all')
+					i += 0
+				else:
+					i += (cam_count + 1)
+
+			if TEXT_MODE:
+				plt.show()
+				plt.close('all')
+
+			TEXT_MODE = True
+		
 	print("[INFO] Done.")
