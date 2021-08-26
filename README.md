@@ -1,7 +1,14 @@
 <!-- # Automated Shorthand Recognition using Optimized DNNs
 This repository contains code used in our paper ***"Automated Shorthand Writing Recognition using an Optimized Knowledge Distilled Fine-Tuned Deep Convolutional Neural Network"*** (under review). -->
 
+
 **Authors:** Subham Sahu, Dr. Francis Jesmar P. Montalbo, Yogesh Kumar Vishwakarma, Jeevanlal Kori.
+
+This repository serves as a supplementary for a research article submitted for publication. Please contact us before using any material in this repository.
+
+# GRAPHICAL ABSTRACT
+
+
 
 ## Requirements
 - Python 3.7.7
@@ -41,3 +48,5 @@ Below command will open a Interface for testing our models.
 |     Model Name      |   Output|
 | ------------------- | --------|
 | KD-EfficientNetB0 (Best Student) | ![Output](https://github.com/sub1120/PSR-KD/blob/master/out/Cams/KD-EfficientNetB0.png) |
+
+**Note:** CAMERAS will take a while.
