@@ -55,12 +55,12 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 	#If input resolutions not provided
 	np.seterr(all='call')
 	if input_resolutions is None:
-		input_resolutions = list(range(256, 1000, 100))
+		input_resolutions = list(range(256, 432, 25))
 
 	#If label index not provided
 	if label_index is None:
 		preds = model.predict(np.expand_dims(image_array, axis=0))
-		label_index = np.argmax(preds)
+		label_index = np.argmax(preds[0])
 
 	#Obtain gradients and activations for each input resolution
 	features = {}
@@ -114,13 +114,10 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 	saliency = saliency - saliency.min()
 	cam = saliency / saliency.max()
 
-	if not activation_modifier is  None:
-		cam = activation_modifier(cam)
-
 	return cam
 
 #Generate Cam Wrapper Function to all Cams
-def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=None, activation_modifier=None, change_input_shape=None, input_resolutions=None):
+def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=None, change_input_shape=None, input_resolutions=None):
 	"""Args:
 		cam_type: A str
 			Available options are 'gradcam', 'gradcampp', 'scorecam', cameras.
@@ -132,10 +129,6 @@ def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=No
 			The index of last convolutional layer
 		label_index: An integer
 			The class index for which we are interested to obtain cam.
-		activation_modifier: A function 
-		 	The function which modifies Class Activation Map (CAM). Defaults to
-            lambda cam: K.relu(cam).
-
         *For CAMERAS ONLY*
         change_input_shape: A tuple object, 
 			The function to change input shape of model
@@ -178,7 +171,6 @@ def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=No
 									image_array=image_array,
 									penultimate_layer=activation_layer_index,
 									change_input_shape=change_input_shape,
-									activation_modifier=None,
 									label_index=label_index,
 									input_resolutions=input_resolutions)
 
@@ -191,7 +183,7 @@ def get_change_input_func(model_api_func):
 		transfer = model_api_func(include_top = False, weights=None, input_tensor=Input(shape=(new_input_shape[0], new_input_shape[1], 3)))
 		x = GlobalAveragePooling2D()(transfer.layers[-1].output)
 		x = Dropout(0.5)(x)
-		outputs = Dense(TOTAL_CLASSES, activation='softmax')(x)
+		outputs = Dense(TOTAL_CLASSES)(x)
 		#Load weights into new model
 		model_weights =  model.get_weights()
 		new_model = Model(inputs = transfer.inputs, outputs = outputs)
@@ -261,7 +253,7 @@ def get_superimposed_image(img, heatmap, alpha=0.5):
 
 	# Create an image with RGB colorized heatmap
 	jet_heatmap = array_to_img(jet_heatmap)
-	jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
+	jet_heatmap = jet_heatmap.resize((img.shape[0], img.shape[1]))
 	jet_heatmap = img_to_array(jet_heatmap)
 
 	# Superimpose the heatmap on original image
