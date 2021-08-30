@@ -1,5 +1,6 @@
 import tkinter as tk
 from test import main
+import argparse
 
 #Input Modes
 MODES = ['IMAGE MODE', 'VIDEO MODE']
@@ -167,6 +168,12 @@ class ChooseInput:
 
 	def start(self):
 		self.close()
+
+		arg_parser = argparse.ArgumentParser(description='Calculate Inference Time', epilog='')
+		arg_parser.add_argument("-g", "--enable_gpu", help="Enable GPU", action="store_true", default=False)
+		args = arg_parser.parse_args()
+		enable_gpu = args.enable_gpu
+
 		#Get arguments
 		input_files = self.input_files
 		is_video_mode = False
@@ -178,8 +185,33 @@ class ChooseInput:
 		is_gradcamplus = self.check2.get()
 		is_scorecam = self.check3.get()
 		is_camerascam = self.check4.get()
+		
+		cams = {'Grad-Cam': is_gradcam, 
+				'Grad-Cam++': is_gradcamplus, 
+				'Faster Score-Cam': is_scorecam, 
+				'CAMERAS-Cam':is_camerascam}
+
+		print("-----------------------------------------------")
+		print("[INFO] Input Summary")
+		if is_video_mode: 
+			print(" 1.Input Mode: Video Mode")
+			print(" 2.Model Name: ", model_name)
+			if is_gradcamplus:
+				print(" 3.CAM Selcted: Grad-Cam++")
+			elif is_gradcam:
+				print(" 3.CAM Selcted: Grad-Cam")
+			elif is_scorecam:
+				print(" 3.CAM Selcted: Faster Score-Cam")
+			elif is_camerascam:
+				print(" 3.CAM Selcted: CAMERAS-Cam")
+		else:
+			print(" 1.Input Mode: Image Mode")
+			print(" 2.Model Name: ", model_name)
+			print(" 3.CAMs Selected:", [k for k in cams.keys() if cams[k]])
+			print(" 4.Images Selected:", [f.split('/')[-1] for f in input_files])
+		print("------------------------------------------------")
 		main(is_video_mode, model_name, is_gradcam, is_gradcamplus, 
-						is_scorecam, is_camerascam, input_files)
+						is_scorecam, is_camerascam, input_files, enable_gpu)
 
 if __name__ == "__main__":
 	print("[INFO] Opening GUI")

@@ -10,7 +10,6 @@ from utils.load_utils import init_models
 #Import other required modules
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import tkinter as tk
 import numpy as np
 import cv2
 
@@ -19,7 +18,7 @@ IMAGE_SIZE = (256, 256)
 TOTAL_CLASSES = 199
 BATCH_SIZE = 4
 FONT_SIZE = 10
-DPI = 600
+DPI = 1200
 
 #Input Modes
 MODES = ['IMAGE MODE', 'VIDEO MODE']
@@ -60,8 +59,15 @@ def process_frame(org_img_array, preprocess_func, rescale):
 	img_array = get_img_array(img_array, IMAGE_SIZE, preprocess_func, rescale)			#Apply preprocesing of model
 	return img_array
 
-def main(is_video_mode, model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, input_files):
-	tf.config.set_visible_devices([], 'GPU')
+def main(is_video_mode, model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, input_files, enable_gpu):
+	
+	#Check gpu availability
+	if enable_gpu:
+		gpus = len(tf.config.list_physical_devices('GPU'))
+		print('[INFO] Tensorflow recognized {} GPUs'.format(gpus))
+	else:
+		tf.config.set_visible_devices([], 'GPU')
+
 	cam_count = [is_scorecam, is_gradcamplus, is_gradcam, is_camerascam].count(True)
 
 	#Load {index:classs_name} dictionary
@@ -83,17 +89,7 @@ def main(is_video_mode, model_name, is_gradcam, is_gradcamplus, is_scorecam, is_
 		activation_layer_index = -4
 		change_input_shape = get_change_input_func(all_models[model_name]['api_func'])
 
-	if is_video_mode:
-		#Get Activation heatmap
-		if is_gradcamplus:
-			print("[INFO] Set CAM: Grad-Cam++")
-		elif is_gradcam:
-			print("[INFO] Set CAM: Grad-Cam")
-		elif is_scorecam:
-			print("[INFO] Set CAM: Faster Score-Cam")
-		elif is_camerascam:
-			print("[INFO] Set CAM: CAMERAS-Cam")
-		
+	if is_video_mode:		
 		#Start Capturing
 		print("[INFO] Starting Camera")
 		capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
@@ -198,83 +194,72 @@ def main(is_video_mode, model_name, is_gradcam, is_gradcamplus, is_scorecam, is_
 				cam_images[file_name]['cameras'] = gen_cam(cam_type='cameras', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index, change_input_shape=change_input_shape)
 
 		#Plot Cams
-		TEXT_MODE = False
 		print("[INFO] Plotting Cams")
-		OUTPUT_PATH = 'out/Cams/' + model_name + '/'
-		for _ in range(2):
-			i = 0
-			if TEXT_MODE:
-				rows, cols = (len(cam_images), cam_count + 1)
-			else:
-				rows, cols = (1, 5)
-			plt.figure(figsize=(12, 12))
-			if TEXT_MODE: plt.title("CAMS")
-			for j in range(len(input_files)):
-				file_name = input_files[j]
-				actual_class = file_name.split('/')[-1].split('.')[0]
+		OUTPUT_PATH = 'out/Cams/' 
 
-				org_img = load_img(file_name)
-				org_img = get_img_array(org_img, IMAGE_SIZE)
-				pred_index = predictions[j]
-				score = scores[j]
+		i=0
+		rows, cols = (len(cam_images), cam_count + 1)
+		plt.figure(figsize=(12, 12))
+		plt.title("CAMS")
+		for k in range(len(input_files)):
+			file_name = input_files[k]
+			actual_class = file_name.split('/')[-1].split('.')[0]
+
+			org_img = load_img(file_name)
+			org_img = get_img_array(org_img, IMAGE_SIZE)
+			pred_index = predictions[k]
+			score = scores[k]
+					
+			j = 1
+			#Plot Original Image
+			plt.subplot(rows, cols, i + j)
+			plt.imshow(org_img/255.0)
+			plt.xticks([])
+			plt.yticks([])
+			plt.title("Predicted: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
+			j += 1
 				
-				j = 1
-				#Plot Original Image
+			#Plot Superimposed heatmap on Original Image
+			if is_gradcam:
+				gradcam_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcam'])
 				plt.subplot(rows, cols, i + j)
-				plt.imshow(org_img/255.0)
+				plt.imshow(gradcam_super_img)
 				plt.xticks([])
 				plt.yticks([])
-				if TEXT_MODE: plt.title("Predicted: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
+				plt.title("Grad-CAM", fontsize=FONT_SIZE)
 				j += 1
-			
-				#Plot Superimposed heatmap on Original Image
-				if is_gradcam:
-					gradcam_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcam'])
-					plt.subplot(rows, cols, i + j)
-					plt.imshow(gradcam_super_img)
-					plt.xticks([])
-					plt.yticks([])
-					if TEXT_MODE: plt.title("Grad-CAM", fontsize=FONT_SIZE)
-					j += 1
 				
-				if is_gradcamplus:
-					gradcampp_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcampp'])
-					plt.subplot(rows, cols, i + j)
-					plt.imshow(gradcampp_super_img)
-					plt.xticks([])
-					plt.yticks([])
-					if TEXT_MODE: plt.title("Grad-Cam++", fontsize=FONT_SIZE)
-					j += 1
+			if is_gradcamplus:
+				gradcampp_super_img = get_superimposed_image(org_img, cam_images[file_name]['gradcampp'])
+				plt.subplot(rows, cols, i + j)
+				plt.imshow(gradcampp_super_img)
+				plt.xticks([])
+				plt.yticks([])
+				plt.title("Grad-Cam++", fontsize=FONT_SIZE)
+				j += 1
+					
+			if is_scorecam:
+				scorecam_super_img = get_superimposed_image(org_img, cam_images[file_name]['scorecam'])
+				plt.subplot(rows, cols, i + j)
+				plt.imshow(scorecam_super_img)
+				plt.xticks([])
+				plt.yticks([])
+				plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
+				j += 1
+					
+			if is_camerascam:
+				cameras_super_img = get_superimposed_image(org_img, cam_images[file_name]['cameras'])
+				plt.subplot(rows, cols, i + j)
+				plt.imshow(cameras_super_img)
+				plt.xticks([])
+				plt.yticks([])
+				plt.title("Cameras-Cam", fontsize=FONT_SIZE)
+				j += 1
 				
-				if is_scorecam:
-					scorecam_super_img = get_superimposed_image(org_img, cam_images[file_name]['scorecam'])
-					plt.subplot(rows, cols, i + j)
-					plt.imshow(scorecam_super_img)
-					plt.xticks([])
-					plt.yticks([])
-					if TEXT_MODE: plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
-					j += 1
-				
-				if is_camerascam:
-					cameras_super_img = get_superimposed_image(org_img, cam_images[file_name]['cameras'])
-					plt.subplot(rows, cols, i + j)
-					plt.imshow(cameras_super_img)
-					plt.xticks([])
-					plt.yticks([])
-					if TEXT_MODE: plt.title("Cameras-Cam", fontsize=FONT_SIZE)
-					j += 1
+			i += (cam_count + 1)
 
-				if not TEXT_MODE: 
-					savefigure(OUTPUT_PATH, actual_class + '-' + index_class[pred_index] + '(' + score + ')')
-					plt.close('all')
-					i += 0
-				else:
-					i += (cam_count + 1)
-
-			if TEXT_MODE:
-				plt.show()
-				plt.close('all')
-
-			TEXT_MODE = True
-		
+		savefigure(OUTPUT_PATH, model_name)
+		plt.show()		
+		plt.close('all')
+					
 	print("[INFO] Done.")

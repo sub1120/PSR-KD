@@ -5,6 +5,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.preprocessing.image import load_img
 from sklearn.metrics import accuracy_score
 from utils.load_utils import init_models
+import tensorflow as tf
 import argparse
 import numpy as np
 import math
@@ -24,6 +25,7 @@ BATCH_SIZE = 32
 def init_arg_parser():
 	arg_parser = argparse.ArgumentParser(description='Calculate Inference Time', epilog='')
 	arg_parser.add_argument("model_index", help="Give model index")
+	arg_parser.add_argument("-g", "--enable_gpu", help="Enable GPU", action="store_true", default=False)
 	return arg_parser
 
 def load_data(datapath):
@@ -73,6 +75,14 @@ if __name__ == '__main__':
 	arg_parser = init_arg_parser()
 	args = arg_parser.parse_args()
 	model_index = args.model_index
+	enable_gpu = args.enable_gpu
+
+	#Check gpu availability
+	if enable_gpu:
+		gpus = len(tf.config.list_physical_devices('GPU'))
+		print('[INFO] Tensorflow recognized {} GPUs'.format(gpus))
+	else:
+		tf.config.set_visible_devices([], 'GPU')
 
 	#Create {index:model_name} dictionary
 	index_model = {}
