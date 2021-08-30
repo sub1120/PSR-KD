@@ -33,13 +33,17 @@ Use following command
 - *notebooks :* Contains all Training, Evaluation and Other Notebooks.
 - *test.py :* A simple script to try our all models, usage is defined below. 
 - *gui.py :* GUI Script.
+- *inference.py :* Calculate inference time.
 - models : All trained models. [models drive link](https://drive.google.com/drive/folders/1gwIjRJpe0_Qdcl9JMxfxNz191klWTFka?usp=sharing)
 - ds : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1HUP62HfK24o-G0KLshGGVCG44-dX2b3E?usp=sharing)
 
 ## Usage
 Below command will open a Interface for testing our models.
 
-> ```python gui.py ```
+> ```python gui.py ``` 
+
+To run script with GPU, use below command
+> ```python gui.py -g```
 
 ## Interface Guide
 ![Output](https://github.com/sub1120/PSR-KD/blob/master/out/GUI.PNG)
