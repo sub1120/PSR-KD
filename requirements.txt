@@ -5,3 +5,4 @@ opencv-python == 4.5.2.54
 numpy == 1.19.5
 tqdm == 4.61.1
 keras-flops == 0.1.2
+scikit-learn == 0.24.2
