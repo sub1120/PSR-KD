@@ -3,22 +3,22 @@ from test import main
 import argparse
 
 #Input Modes
-MODES = ['IMAGE MODE', 'VIDEO MODE']
+MODES = ['IMAGE MODE']
 
 #List all model files
-DISTILLED_STUDENT_FILES = ['KD-DenseNet121', 'KD-EfficientNetB0', 'KD-NASNetMobile', 'KD-MobileNetV2', 'KD-Custom-CNN']
-NORMAL_STUDENT_FILES = ['DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'Custom-CNN']
-TEACHER_FILES = ['DenseNet201', 'Xception', 'InceptionResNetV2', 'ResNet152V2', 'EfficientNetB7', 'NASNetLarge', 'EnsembleModel']
-MODEL_FILES = DISTILLED_STUDENT_FILES + NORMAL_STUDENT_FILES +  TEACHER_FILES
+#List all model names
+BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'MiniMobileNetV2', 'EnsembleModel']
+PROPOSED_FILES = ['MiniMobileNetV2', 'MiniMobileNetV2-KD']
+MODEL_FILES = BASE_FILES + PROPOSED_FILES
 FONT = 'Helvetica 10 underline'
 
 class ChooseInput:
 	def __init__(self, root):
 		self.root = root
-		self.root.title("Choose Input")
+		self.root.title("PSR Choose Input")
 
 		#Select Mode
-		self.l1 = tk.Label(master=root, text="Choose Mode", fg="blue", font=FONT)
+		self.l1 = tk.Label(master=root, text="Input Mode", fg="blue", font=FONT)
 		self.l1.grid(row=0, column =0, pady = 4)
 
 		self.droptext1 = tk.StringVar()
@@ -31,7 +31,7 @@ class ChooseInput:
 		self.l2.grid(row=0, column =1, pady = 4)
 
 		self.droptext2 = tk.StringVar()
-		self.droptext2.set("KD-EfficientNetB0")
+		self.droptext2.set("MiniMobileNetV2-KD")
 		self.drop2 = tk.OptionMenu(root , self.droptext2 , *MODEL_FILES, command=self.validate3)
 		self.drop2.grid(row=1, column =1, padx = 5)
 
@@ -93,7 +93,7 @@ class ChooseInput:
 		#Start button
 		self.b2 = tk.Button(master=root, text="START",command=self.start)
 		self.b2.grid(row=8, column =0, pady = 10, columnspan = 2)
-		self.b2.config( state= 'disabled')
+		self.b2.config(state= 'disabled')
 
 		self.input_files = []
 
@@ -112,13 +112,8 @@ class ChooseInput:
 			self.b2.config( state= 'normal')
 
 	def validate1(self, ele):
-		#Disable Select Image Button in VIDEO MODE
-		if self.droptext1.get() == "VIDEO MODE":
-			self.b1.config( state= 'disabled')
-			self.b2.config(state='normal')
-		else:
-			self.b1.config( state= 'normal')
-			self.b2.config(state='disabled')
+		self.b1.config( state= 'normal')
+		self.b2.config(state='disabled')
 
 		#Uncheck all checkboxes
 		self.check1.set(False)
@@ -133,21 +128,7 @@ class ChooseInput:
 		self.cb4.config( state= 'normal')
 
 	def validate2(self):
-		#In VIDEO MODE Disable all other Checkbox other than selected one
 		is_selected = self.check1.get() or self.check2.get() or self.check3.get() or self.check4.get()
-
-		if self.droptext1.get() == "VIDEO MODE":
-			if is_selected:
-				if not self.check1.get(): self.cb1.config( state= 'disabled')
-				if not self.check2.get(): self.cb2.config( state= 'disabled')
-				if not self.check3.get(): self.cb3.config( state= 'disabled')
-				if not self.check4.get(): self.cb4.config( state= 'disabled')
-			else:
-				self.cb1.config( state= 'normal')
-				self.cb2.config( state= 'normal')
-				self.cb3.config( state= 'normal')
-				self.cb4.config( state= 'normal')
-
 
 	def validate3(self, ele):
 		#Disable Checkbox in case of Ensenble model
@@ -176,10 +157,6 @@ class ChooseInput:
 
 		#Get arguments
 		input_files = self.input_files
-		is_video_mode = False
-		if self.droptext1.get() == "VIDEO MODE": 
-			is_video_mode = True
-
 		model_name = self.droptext2.get()
 		is_gradcam = self.check1.get()
 		is_gradcamplus = self.check2.get()
@@ -193,24 +170,12 @@ class ChooseInput:
 
 		print("-----------------------------------------------")
 		print("[INFO] Input Summary")
-		if is_video_mode: 
-			print(" 1.Input Mode: Video Mode")
-			print(" 2.Model Name: ", model_name)
-			if is_gradcamplus:
-				print(" 3.CAM Selcted: Grad-Cam++")
-			elif is_gradcam:
-				print(" 3.CAM Selcted: Grad-Cam")
-			elif is_scorecam:
-				print(" 3.CAM Selcted: Faster Score-Cam")
-			elif is_camerascam:
-				print(" 3.CAM Selcted: CAMERAS-Cam")
-		else:
-			print(" 1.Input Mode: Image Mode")
-			print(" 2.Model Name: ", model_name)
-			print(" 3.CAMs Selected:", [k for k in cams.keys() if cams[k]])
-			print(" 4.Images Selected:", [f.split('/')[-1] for f in input_files])
+		print(" 1.Input Mode: Image Mode")
+		print(" 2.Model Name: ", model_name)
+		print(" 3.CAMs Selected:", [k for k in cams.keys() if cams[k]])
+		print(" 4.Images Selected:", [f.split('/')[-1] for f in input_files])
 		print("------------------------------------------------")
-		main(is_video_mode, model_name, is_gradcam, is_gradcamplus, 
+		main(model_name, is_gradcam, is_gradcamplus, 
 						is_scorecam, is_camerascam, input_files, enable_gpu)
 
 if __name__ == "__main__":
@@ -218,6 +183,6 @@ if __name__ == "__main__":
 	#Initialize GUI
 	root = tk.Tk()
 	root.resizable(False, False)
-	root.geometry('280x300+500+300')
+	root.geometry("")
 	my_gui = ChooseInput(root)
 	root.mainloop()

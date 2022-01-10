@@ -3,7 +3,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow.keras.preprocessing.image import img_to_array, array_to_img
 from tensorflow.keras.models import Model
 
-from tensorflow.keras.layers import MaxPool2D, Input, Dense, GlobalAveragePooling2D, Conv2D, Dropout
+from tensorflow.keras.layers import Input
 from tensorflow.keras.layers.experimental.preprocessing import Resizing
 from tensorflow.keras.activations import relu
 
@@ -11,7 +11,6 @@ from tensorflow.keras.activations import relu
 from tf_keras_vis.gradcam import GradcamPlusPlus, Gradcam
 from tf_keras_vis.scorecam import Scorecam
 
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import tensorflow as tf
 import numpy as np
@@ -23,13 +22,8 @@ def numpy_error_handler(type, flag):
 
 np.seterrcall(numpy_error_handler)
 
-#Define Constants
-IMAGE_SIZE = (256, 256)
-TOTAL_CLASSES = 199
-BATCH_SIZE = 4
-
 #CAMERAS Function
-def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None, label_index=None, change_input_shape=None, activation_modifier=None):
+def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None, label_index=None, activation_modifier=None):
 	"""Args:
 		 model: A tensorflow.keras.Model object, 
 				The model
@@ -42,9 +36,7 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 				eg. if input_resolutions = (256, 1000, 100), 
 				then resolutions are (256X256), (356X356), (456X456).......(1000X1000)
 		 label_index: An integer
-				The class index for which we are interested to obtain cam.
-		 change_input_shape: A tuple object, 
-				The function to change input shape of model,
+				The class index for which we are interested to obtain cam
 		 activation_modifier: A function 
 		 		The function which modifies Class Activation Map (CAM). Defaults to
                 lambda cam: K.relu(cam).
@@ -55,7 +47,7 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 	#If input resolutions not provided
 	np.seterr(all='call')
 	if input_resolutions is None:
-		input_resolutions = list(range(256, 432, 25))
+		input_resolutions = list(range(model.input.shape[1], 450, 32))
 
 	#If label index not provided
 	if label_index is None:
@@ -67,7 +59,8 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 	gradients = {}
 	for i, input_resolution in enumerate(input_resolutions):
 		#Change the model input to current input_resolution
-		new_model = change_input_shape(model=model, new_input_shape=(input_resolution, input_resolution, 3))
+		input_tensors = Input(shape=(input_resolution, input_resolution, 3))
+		new_model = tf.keras.models.clone_model(model, input_tensors=input_tensors, clone_function=None)
 
 		#Resize image to current input_resolution
 		resized_image_array = cv2.resize(image_array, (input_resolution, input_resolution), interpolation=cv2.INTER_LINEAR)
@@ -116,8 +109,8 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 
 	return cam
 
-#Generate Cam Wrapper Function to all Cams
-def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=None, change_input_shape=None, input_resolutions=None):
+#Generate Cam Wrapper Function for all Cams
+def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=None):
 	"""Args:
 		cam_type: A str
 			Available options are 'gradcam', 'gradcampp', 'scorecam', cameras.
@@ -164,65 +157,16 @@ def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=No
 											activation_modifier=None,
 											max_N=10)[0]
 	elif cam_type == 'cameras':
-		if change_input_shape == None:
-			print("[ERROR] Call to get_cam(cam_type='cameras',...) requires argument 'change_input_shape'")
-			exit()
 		heatmap = cameras_cam(model=model, 
 									image_array=image_array,
 									penultimate_layer=activation_layer_index,
-									change_input_shape=change_input_shape,
-									label_index=label_index,
-									input_resolutions=input_resolutions)
+									label_index=label_index
+									)
 
 	return heatmap
 
-#Change input shape function for all standard models 
-def get_change_input_func(model_api_func):
-	def change_input_shape1(model, new_input_shape):
-		#Define new model with changed input shape
-		transfer = model_api_func(include_top = False, weights=None, input_tensor=Input(shape=(new_input_shape[0], new_input_shape[1], 3)))
-		x = GlobalAveragePooling2D()(transfer.layers[-1].output)
-		x = Dropout(0.5)(x)
-		outputs = Dense(TOTAL_CLASSES)(x)
-		#Load weights into new model
-		model_weights =  model.get_weights()
-		new_model = Model(inputs = transfer.inputs, outputs = outputs)
-		new_model.set_weights(model_weights)   
-		return new_model
-
-	return change_input_shape1
-
-#Change input shape function for our Custom-CNN
-def change_input_shape2(model, new_input_shape):
-	inputs = Input(shape=(new_input_shape[0], new_input_shape[1], 3))
-	
-	x = Conv2D(32, 7, activation="relu", kernel_initializer='random_uniform')(inputs)
-	x = MaxPool2D((2,2))(x)
-
-	x = Conv2D(64, 5, activation="relu", kernel_initializer='random_uniform')(x)
-	x = MaxPool2D((2,2))(x)
-
-	x = Conv2D(64, 5, activation="relu", kernel_initializer='random_uniform')(x)
-	x = MaxPool2D((2,2))(x)
-
-	x = Conv2D(64, 5, activation="relu", kernel_initializer='random_uniform')(x)
-	x = MaxPool2D((2,2))(x)
-
-	x = Conv2D(512, 3, activation="relu", kernel_initializer='random_uniform')(x)
-	x = MaxPool2D((2,2))(x)
-
-	x = Conv2D(512, 3, activation="relu", kernel_initializer='random_uniform')(x)
-		
-	x = GlobalAveragePooling2D()(x)
-	outputs = Dense(199)(x)
-
-	model_weights = model.get_weights()
-	new_model = Model(inputs=inputs, outputs=outputs)
-	new_model.set_weights(model_weights)
-	return new_model
-
 #Convert PIL image to numpy array
-def get_img_array(img, target_size=None, preprocess_input = None, rescale = None):
+def get_img_array(img, target_size=None, preprocess_input = None):
 	#Convert to array
 	array = img_to_array(img)
 
@@ -233,9 +177,6 @@ def get_img_array(img, target_size=None, preprocess_input = None, rescale = None
 	#Apply preprocessing
 	if preprocess_input != None: 
 		array = preprocess_input(array)
-
-	if rescale != None:
-		array = array*rescale
 
 	return array
 
