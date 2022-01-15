@@ -148,7 +148,7 @@ def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=No
 											penultimate_layer=activation_layer_index, 
 											seek_penultimate_conv_layer=False, 
 											activation_modifier=None)[0]
-	elif cam_type == "scorecam":
+	elif cam_type == "f-scorecam":
 		scorecam = Scorecam(model, model_modifier=None, clone=False)
 		heatmap = scorecam(score_function(label_index),
 											image_array, 
@@ -156,8 +156,21 @@ def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=No
 											seek_penultimate_conv_layer=False, 
 											activation_modifier=None,
 											max_N=10)[0]
+	elif cam_type == "scorecam":
+		scorecam = Scorecam(model, model_modifier=None, clone=False)
+		heatmap = scorecam(score_function(label_index),
+											image_array, 
+											penultimate_layer=activation_layer_index, 
+											seek_penultimate_conv_layer=False, 
+											activation_modifier=None)[0]
 	elif cam_type == 'cameras':
 		heatmap = cameras_cam(model=model, 
+									image_array=image_array,
+									penultimate_layer=activation_layer_index,
+									label_index=label_index
+									)
+	elif cam_type == 'guidedbp':
+		heatmap = guidedBP(model=model, 
 									image_array=image_array,
 									penultimate_layer=activation_layer_index,
 									label_index=label_index
@@ -206,3 +219,57 @@ def get_superimposed_image(img, heatmap, alpha=0.5):
 #Get Score Function
 def score_function(pred_index):
 	return lambda output: (output[0][pred_index])
+
+
+def guidedBP(model, image_array, penultimate_layer=-1, label_index=None, activation_modifier=None):
+	"""Args:
+		 model: A tensorflow.keras.Model object, 
+				The model
+		 image_array: An array
+				The input image
+		 penultimate_layer: An interger
+				The index of last convolutional layer
+		label_index: An integer
+				The class index for which we are interested to obtain cam
+		 activation_modifier: A function 
+		 		The function which modifies Class Activation Map (CAM). Defaults to
+                lambda cam: K.relu(cam).
+
+	   Return: An array,
+			The heatmap produced from cameras"""
+
+	image_array = np.expand_dims(image_array, axis=0)
+
+	#Create Grad model
+	grad_model = tf.keras.models.Model([model.inputs], [model.layers[penultimate_layer].output, model.output])
+
+	#Get all activation layers
+	layer_dict = [layer for layer in grad_model.layers[1:] if hasattr(layer,'activation')]
+
+	#Define Guidede Relu activation function
+	@tf.custom_gradient
+	def guidedRelu(x):
+		def grad(dy):
+			return tf.cast(dy>0,"float32") * tf.cast(x>0, "float32") * dy
+		return tf.nn.relu(x), grad
+
+	#Apply GuidedRelu to all activation layers
+	for layer in layer_dict:
+		if layer.activation == tf.keras.activations.relu:
+			layer.activation = guidedRelu
+	
+	with tf.GradientTape() as tape:
+		inputs = tf.cast(image_array, tf.float32)
+		tape.watch(inputs)
+		outputs = grad_model(inputs)[0]
+		
+	guided_back_prop = tape.gradient(outputs,inputs)[0]
+	gb_viz = np.dstack((
+				guided_back_prop[:, :, 0],
+				guided_back_prop[:, :, 1],
+				guided_back_prop[:, :, 2]
+	))       
+	gb_viz -= np.min(gb_viz)
+	gb_viz /= gb_viz.max()
+
+	return gb_viz

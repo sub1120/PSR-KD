@@ -44,7 +44,7 @@ def softmax(arr):
 	return arr
 
 
-def main(model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, input_files, enable_gpu):
+def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_camerascam, is_guidedbp, input_files, enable_gpu):
 	
 	#Check gpu availability
 	if enable_gpu:
@@ -53,7 +53,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, inp
 	else:
 		tf.config.set_visible_devices([], 'GPU')
 
-	cam_count = [is_scorecam, is_gradcamplus, is_gradcam, is_camerascam].count(True)
+	cam_count = [is_scorecam, is_f_scorecam, is_gradcamplus, is_gradcam, is_camerascam, is_guidedbp].count(True)
 
 	#Load {index:classs_name} dictionary
 	index_class = index_class_dict()
@@ -104,12 +104,18 @@ def main(model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, inp
 		if is_gradcamplus:
 			cam_images[file_name]['gradcampp'] = gen_cam(cam_type='gradcampp', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)	
 		#FasterScore-Cam++
+		if is_f_scorecam:
+			cam_images[file_name]['f-scorecam'] = gen_cam(cam_type='f-scorecam', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)
+		#Scorecam
 		if is_scorecam:
 			cam_images[file_name]['scorecam'] = gen_cam(cam_type='scorecam', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)
 		#CAMERAS
 		if is_camerascam:
 			cam_images[file_name]['cameras'] = gen_cam(cam_type='cameras', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)
 
+		if is_guidedbp:
+			cam_images[file_name]['guidedbp'] = gen_cam(cam_type='guidedbp', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)
+		
 	#Plot Cams
 	print("[INFO] Plotting Cams")
 	OUTPUT_PATH = 'out/Cams/' 
@@ -117,7 +123,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, inp
 	i=0
 	rows, cols = (len(cam_images), cam_count + 1)
 	plt.figure(figsize=(12, 12))
-	plt.title("CAMS")
+	plt.suptitle("Prediction: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
 	for k in range(len(input_files)):
 		file_name = input_files[k]
 		actual_class = file_name.split('/')[-1].split('.')[0]
@@ -133,7 +139,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, inp
 		plt.imshow(org_img/255.0)
 		plt.xticks([])
 		plt.yticks([])
-		plt.title("Predicted: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
+		plt.title("Input", fontsize=FONT_SIZE)
 		j += 1
 				
 		#Plot Superimposed heatmap on Original Image
@@ -154,14 +160,23 @@ def main(model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, inp
 			plt.yticks([])
 			plt.title("Grad-Cam++", fontsize=FONT_SIZE)
 			j += 1
-					
+		
+		if is_f_scorecam:
+			f_scorecam_super_img = get_superimposed_image(org_img, cam_images[file_name]['f-scorecam'])
+			plt.subplot(rows, cols, i + j)
+			plt.imshow(f_scorecam_super_img)
+			plt.xticks([])
+			plt.yticks([])
+			plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
+			j += 1
+
 		if is_scorecam:
 			scorecam_super_img = get_superimposed_image(org_img, cam_images[file_name]['scorecam'])
 			plt.subplot(rows, cols, i + j)
 			plt.imshow(scorecam_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
+			plt.title("Score-Cam", fontsize=FONT_SIZE)
 			j += 1
 					
 		if is_camerascam:
@@ -171,6 +186,14 @@ def main(model_name, is_gradcam, is_gradcamplus, is_scorecam, is_camerascam, inp
 			plt.xticks([])
 			plt.yticks([])
 			plt.title("Cameras-Cam", fontsize=FONT_SIZE)
+			j += 1
+
+		if is_guidedbp:
+			plt.subplot(rows, cols, i + j)
+			plt.imshow(cam_images[file_name]['guidedbp'])
+			plt.xticks([])
+			plt.yticks([])
+			plt.title("Guided-Bp", fontsize=FONT_SIZE)
 			j += 1
 			
 		i += (cam_count + 1)
