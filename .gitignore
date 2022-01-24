@@ -1,4 +1,5 @@
-*.pyc
-models
 ds
+models
+__pycache__
 out
+utils/__pycache__
