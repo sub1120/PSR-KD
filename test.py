@@ -123,7 +123,6 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 	i=0
 	rows, cols = (len(cam_images), cam_count + 1)
 	plt.figure(figsize=(12, 12))
-	plt.suptitle("Prediction: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
 	for k in range(len(input_files)):
 		file_name = input_files[k]
 		actual_class = file_name.split('/')[-1].split('.')[0]
@@ -136,10 +135,10 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 		j = 1
 		#Plot Original Image
 		plt.subplot(rows, cols, i + j)
+		plt.title("Prediction: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
 		plt.imshow(org_img/255.0)
 		plt.xticks([])
 		plt.yticks([])
-		plt.title("Input", fontsize=FONT_SIZE)
 		j += 1
 				
 		#Plot Superimposed heatmap on Original Image
@@ -198,7 +197,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 			
 		i += (cam_count + 1)
 
-	savefigure(OUTPUT_PATH, model_name)
+	savefigure(OUTPUT_PATH, model_name + '-' + actual_class)
 	plt.show()		
 	plt.close('all')
 					

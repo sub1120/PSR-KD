@@ -47,7 +47,7 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 	#If input resolutions not provided
 	np.seterr(all='call')
 	if input_resolutions is None:
-		input_resolutions = list(range(model.input.shape[1], 450, 32))
+		input_resolutions = list(range(model.input.shape[1], model.input.shape[1] + 701, 100))
 
 	#If label index not provided
 	if label_index is None:
@@ -61,6 +61,7 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 		#Change the model input to current input_resolution
 		input_tensors = Input(shape=(input_resolution, input_resolution, 3))
 		new_model = tf.keras.models.clone_model(model, input_tensors=input_tensors, clone_function=None)
+		new_model.set_weights(model.get_weights())
 
 		#Resize image to current input_resolution
 		resized_image_array = cv2.resize(image_array, (input_resolution, input_resolution), interpolation=cv2.INTER_LINEAR)
