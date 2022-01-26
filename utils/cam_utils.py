@@ -6,6 +6,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers.experimental.preprocessing import Resizing
 from tensorflow.keras.activations import relu
+from tensorflow.keras import backend as K
 
 #Import Cam functions
 from tf_keras_vis.gradcam import GradcamPlusPlus, Gradcam
@@ -270,7 +271,20 @@ def guidedBP(model, image_array, penultimate_layer=-1, label_index=None, activat
 				guided_back_prop[:, :, 1],
 				guided_back_prop[:, :, 2]
 	))       
-	gb_viz -= np.min(gb_viz)
-	gb_viz /= gb_viz.max()
+
+	gb_viz = gb_viz.copy()
+	gb_viz -= gb_viz.mean()
+	gb_viz /= (gb_viz.std() + K.epsilon())
+	gb_viz *= 0.25
+
+	# clip to [0, 1]
+	gb_viz += 0.5
+	gb_viz = np.clip(gb_viz, 0, 1)
+
+	# convert to RGB array
+	gb_viz *= 255
+	if K.image_data_format() == 'channels_first':
+		gb_viz = gb_viz.transpose((1, 2, 0))
+	gb_viz = np.clip(gb_viz, 0, 255).astype('uint8')
 
 	return gb_viz
