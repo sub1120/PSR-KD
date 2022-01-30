@@ -1,25 +1,20 @@
-#Import layers and model utils
-from tensorflow.keras.layers import Dropout, Input, Dense, GlobalAveragePooling2D
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import model_from_json
-from tensorflow.keras.models import Model, load_model
-
 #Import models API
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import load_model
 from tensorflow.keras.applications import densenet
 from tensorflow.keras.applications import xception
 from tensorflow.keras.applications import inception_resnet_v2 
+from tensorflow.keras.applications import inception_v3
 from tensorflow.keras.applications import resnet_v2 
-from tensorflow.keras.applications import efficientnet
+from keras.applications import efficientnet
 from tensorflow.keras.applications import nasnet
 from tensorflow.keras.applications import mobilenet_v2
 
 #Import ensemble modules
-from utils.ensemble import ENB7_PreprocessLayer
-from utils.ensemble import D201_PreprocessLayer
-from utils.ensemble import XCEP_PreprocessLayer
-from utils.ensemble import IRNV2_PreprocessLayer
-from utils.ensemble import RNV2_PreprocessLayer
-from utils.ensemble import NNL_PreprocessLayer
+from utils.ensemble import EN_PreprocessLayer
+from utils.ensemble import Dense_PreprocessLayer
+from utils.ensemble import NN_PreprocessLayer
+from utils.ensemble import INV3_PreprocessLayer
 
 #Import other modules 
 import numpy as np
@@ -27,147 +22,105 @@ import pickle
 import math
 import os
 
-#Define Constants
-IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 4
-TOTAL_CLASSES = 199
-
-#Define model paths
-DIST_STUDENT_MODEL_PATH = 'models/Distilled_Student_Models/'
-NORMAL_STUDENT_MODEL_PATH = 'models/Student_Models/'
-TEACHER_MODEL_PATH = 'models/Teacher_Models/'
-
 #List all model names
-DISTILLED_STUDENT_FILES = ['KD-DenseNet121', 'KD-EfficientNetB0', 'KD-NASNetMobile', 'KD-MobileNetV2', 'KD-Custom-CNN']
-NORMAL_STUDENT_FILES = ['DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'Custom-CNN']
-TEACHER_FILES = ['DenseNet201', 'Xception', 'InceptionResNetV2', 'ResNet152V2', 'EfficientNetB7', 'NASNetLarge', 'EnsembleModel']
-MODEL_FILES = DISTILLED_STUDENT_FILES + NORMAL_STUDENT_FILES +  TEACHER_FILES
+BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'EnsembleModel']
+PROPOSED_FILES = ['MiniMobileNetV2', 'MiniMobileNetV2-KD']
+MODEL_FILES = BASE_FILES + PROPOSED_FILES
 
 #Load models function
-def init_models(load_files, image_size=IMAGE_SIZE):
+def init_models(model_path, model_name):
 	#Initialize models
 	models = {}
 	for file in MODEL_FILES:
 		models[file] = {}
 		models[file]['preprocess_func'] = None
-		models[file]['preprocess_layer'] = None
-		models[file]['api_func'] = None
-		models[file]['rescale'] = None
-		models[file]['color'] = None
+		models[file]['image_size'] = None
 		models[file]['model'] = None		
 		
 	#Set Preprocessing Functions of models
 	models['DenseNet201']['preprocess_func'] = densenet.preprocess_input
-	models['Xception']['preprocess_func'] = xception.preprocess_input
+	models['EfficientNetB7']['preprocess_func'] = efficientnet.preprocess_input
 	models['InceptionResNetV2']['preprocess_func'] = inception_resnet_v2.preprocess_input
 	models['ResNet152V2']['preprocess_func'] = resnet_v2.preprocess_input
-	models['EfficientNetB7']['preprocess_func'] = efficientnet.preprocess_input
 	models['NASNetLarge']['preprocess_func'] = nasnet.preprocess_input
-
-	models['EfficientNetB0']['preprocess_func'] = efficientnet.preprocess_input
+	models['Xception']['preprocess_func'] = xception.preprocess_input
+	models['InceptionV3']['preprocess_func'] = inception_v3.preprocess_input
 	models['DenseNet121']['preprocess_func'] = densenet.preprocess_input
-	models['NASNetMobile']['preprocess_func'] = nasnet.preprocess_input
+	models['EfficientNetB0']['preprocess_func'] = efficientnet.preprocess_input
+	models['ResNet50V2']['preprocess_func'] = resnet_v2.preprocess_input
 	models['MobileNetV2']['preprocess_func'] = mobilenet_v2.preprocess_input
+	models['NASNetMobile']['preprocess_func'] = nasnet.preprocess_input
+	models['MiniMobileNetV2']['preprocess_func'] = mobilenet_v2.preprocess_input
+	models['MiniMobileNetV2-KD']['preprocess_func'] = mobilenet_v2.preprocess_input
 
-	models['KD-EfficientNetB0']['preprocess_func'] = efficientnet.preprocess_input
-	models['KD-DenseNet121']['preprocess_func'] = densenet.preprocess_input
-	models['KD-NASNetMobile']['preprocess_func'] = nasnet.preprocess_input
-	models['KD-MobileNetV2']['preprocess_func'] = mobilenet_v2.preprocess_input
-
-	#Set Preprocess layers of models(Used only in Ensemble)
-	models['DenseNet201']['preprocess_layer'] = D201_PreprocessLayer
-	models['Xception']['preprocess_layer'] = XCEP_PreprocessLayer
-	models['InceptionResNetV2']['preprocess_layer'] = IRNV2_PreprocessLayer
-	models['ResNet152V2']['preprocess_layer'] = RNV2_PreprocessLayer
-	models['EfficientNetB7']['preprocess_layer'] = ENB7_PreprocessLayer
-	models['NASNetLarge']['preprocess_layer'] = NNL_PreprocessLayer
-
-	#Set Rescale of models(Used only in Custom CNN)
-	models['Custom-CNN']['rescale'] = 1./255
-	models['KD-Custom-CNN']['rescale'] = 1./255
-
-	#Set Keras API Function of models
-	models['DenseNet201']['api_func'] = densenet.DenseNet201
-	models['Xception']['api_func'] = xception.Xception
-	models['InceptionResNetV2']['api_func'] = inception_resnet_v2.InceptionResNetV2
-	models['ResNet152V2']['api_func'] = resnet_v2.ResNet152V2
-	models['EfficientNetB7']['api_func'] = efficientnet.EfficientNetB7
-	models['NASNetLarge']['api_func'] = nasnet.NASNetLarge
-
-	models['EfficientNetB0']['api_func'] = efficientnet.EfficientNetB0
-	models['DenseNet121']['api_func'] = densenet.DenseNet121
-	models['NASNetMobile']['api_func'] = nasnet.NASNetMobile
-	models['MobileNetV2']['api_func'] = mobilenet_v2.MobileNetV2
-
-	models['KD-EfficientNetB0']['api_func'] = efficientnet.EfficientNetB0
-	models['KD-DenseNet121']['api_func'] = densenet.DenseNet121
-	models['KD-NASNetMobile']['api_func'] = nasnet.NASNetMobile
-	models['KD-MobileNetV2']['api_func'] = mobilenet_v2.MobileNetV2
-
-	#Set colors for models
-	i=0
-	colors = ['chocolate','olive', 'c','m', 'royalblue' , 									#KD-Student colors
-	'chocolate','olive', 'c','m', 'royalblue', 			 									#Normal Student colors
-	'tab:blue', 'tab:orange', 'tab:purple', 'tab:green', 'tab:red', 'tab:brown', 'navy'		#Teacher colors
-	]
-	for file in MODEL_FILES:
-		models[file]['color'] = colors[i]
-		i += 1
+	#Set input size of models
+	models['DenseNet201']['image_size'] = (224, 224)
+	models['EfficientNetB7']['image_size'] = (224, 224)
+	models['InceptionResNetV2']['image_size'] = (299, 299)
+	models['ResNet152V2']['image_size'] = (224, 224)
+	models['NASNetLarge']['image_size'] = (331, 331)
+	models['Xception']['image_size'] = (299, 299)
+	models['InceptionV3']['image_size'] = (299, 299)
+	models['DenseNet121']['image_size'] = (224, 224)
+	models['EfficientNetB0']['image_size'] = (224, 224)
+	models['ResNet50V2']['image_size'] = (224, 224)
+	models['MobileNetV2']['image_size'] = (224, 224)
+	models['NASNetMobile']['image_size'] = (224, 224)
+	models['MiniMobileNetV2']['image_size'] = (224, 224)
+	models['MiniMobileNetV2-KD']['image_size'] = (224, 224)
+	models['EnsembleModel']['image_size'] = (224, 224)
 
 	model = None
 	#Load required models
-	for i in range(len(load_files)):
-		print("[INFO] Loading Model: " + load_files[i])
-		file = load_files[i]
-		#If model is teacher
-		if file in TEACHER_FILES:
-			if file != 'EnsembleModel':
-				model = load_m(TEACHER_MODEL_PATH + file)
-				model = convert_to_functional(model, models[file]['api_func'])
-			else:
-				custom_objects = {'ENB7_PreprocessLayer':ENB7_PreprocessLayer,
-								  'D201_PreprocessLayer':D201_PreprocessLayer}
-				model = load_model(TEACHER_MODEL_PATH + file +'/'+ 'model.h5', custom_objects=custom_objects, compile=False)
-		#If model is normal student
-		elif file in NORMAL_STUDENT_FILES:
-			if file != 'Custom-CNN':
-				model = load_m(NORMAL_STUDENT_MODEL_PATH + file)
-				model = convert_to_functional(model, models[file]['api_func'])
-			else:
-				model = load_m(NORMAL_STUDENT_MODEL_PATH + file)
-				
-		#If model is KD student
-		elif file in DISTILLED_STUDENT_FILES:
-			if file != 'KD-Custom-CNN':	
-				model = load_m(DIST_STUDENT_MODEL_PATH + file)
-				model = convert_to_functional(model, models[file]['api_func'])
-			else:
-				model = load_m(DIST_STUDENT_MODEL_PATH + file)
-				
-		models[file]['model'] = model
+
+	print("[INFO] Loading Model: " + model_name)
+	if model_name != 'EnsembleModel':
+		model = load_m(model_path + model_name, model_name)
+	else:
+		custom_layers = {'EN_PreprocessLayer':EN_PreprocessLayer, 
+		                 'Dense_PreprocessLayer':Dense_PreprocessLayer,
+		                 'NN_PreprocessLayer':NN_PreprocessLayer,
+		                 'INV3_PreprocessLayer':INV3_PreprocessLayer,
+		       			}
+		model = load_m(model_path + model_name, model_name, custom_objects=custom_layers)
+
+	models[model_name]['model'] = model
 
 	return models
 
-#Load Model Function
-def load_m(file):
-	if not os.path.exists(file) and file != 'EnsembleModel':
-		print("\n[ERROR] Model path '" + file +  "' does not exist.")
-		exit()
+#Load model Function
+def load_m(directory, model_name, custom_objects=None):
+    if not os.path.exists(directory):
+        print("Model File Does Not Exist!!")
+        exit() 
+    model = load_model(directory + "/" + model_name + ".h5", custom_objects=custom_objects)
+    return model
 
-	with open(file + "/model.json", "r") as json_file:
-		model = json_file.read()
-		model = model_from_json(model)
-		model.load_weights(file+'/model.h5')
-		return model
+ #DATA GENERATORS
+def create_data_generator(data_path, input_shape=(224,224), batch_size=4, pre_process=None):
+    print("INPUT SIZE -->", input_shape)
+    print("BATCH SIZE -->", batch_size)
 
-#Convert Sequential model to Functional model of keras
-def convert_to_functional(model, api_func):
-	transfer = api_func(include_top = False, weights=None, input_tensor=Input(shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3)))
-	x = GlobalAveragePooling2D()(transfer.layers[-1].output)
-	x = Dropout(0.5)(x)
-	outputs = Dense(TOTAL_CLASSES)(x)
+    nb_samples = 0
+    generator = None
 
-	model_weights =  model.get_weights()
-	model = Model(inputs = transfer.inputs, outputs = outputs)
-	model.set_weights(model_weights)
-	return model
+    datagen = ImageDataGenerator(preprocessing_function=pre_process)
+    
+    if not os.path.exists(data_path):
+        print("DATA DOES NOT EXITS!")
+    else:
+        print("LOADING SAMPLES from ", data_path, "...")
+        generator = datagen.flow_from_directory(
+                data_path,
+                target_size=input_shape,
+                batch_size=batch_size,
+                class_mode='categorical',
+                seed=42,
+                shuffle=False)
+
+        #CHECK  THE NUMBER OF SAMPLES
+        nb_samples = len(generator.filenames)
+        if nb_samples == 0:
+            print("NO DATA please check the path! ", data_path)
+
+    return generator
