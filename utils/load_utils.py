@@ -1,11 +1,12 @@
 #Import models API
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications import densenet
 from tensorflow.keras.applications import xception
 from tensorflow.keras.applications import inception_resnet_v2 
 from tensorflow.keras.applications import inception_v3
 from tensorflow.keras.applications import resnet_v2 
-from tensorflow.keras.applications import efficientnet
+from keras.applications import efficientnet
 from tensorflow.keras.applications import nasnet
 from tensorflow.keras.applications import mobilenet_v2
 
@@ -21,17 +22,13 @@ import pickle
 import math
 import os
 
-#Define model paths
-BASE_PATH = 'models/teacher_model'
-PROPOSED_PATH = 'models/proposed_model'
-
 #List all model names
-BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'EnsembleModel', 'MiniMobileNetV2']
+BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'EnsembleModel']
 PROPOSED_FILES = ['MiniMobileNetV2', 'MiniMobileNetV2-KD']
 MODEL_FILES = BASE_FILES + PROPOSED_FILES
 
 #Load models function
-def init_models(load_files):
+def init_models(model_path, model_name):
 	#Initialize models
 	models = {}
 	for file in MODEL_FILES:
@@ -75,25 +72,19 @@ def init_models(load_files):
 
 	model = None
 	#Load required models
-	for i in range(len(load_files)):
-		print("[INFO] Loading Model: " + load_files[i])
-		file = load_files[i]
-		#If model is teacher
-		if file in BASE_FILES:
-			if file != 'EnsembleModel':
-				model = load_m(BASE_PATH + '/' + file, file)
-			else:
-				custom_layers = {'EN_PreprocessLayer':EN_PreprocessLayer, 
-				                 'Dense_PreprocessLayer':Dense_PreprocessLayer,
-				                 'NN_PreprocessLayer':NN_PreprocessLayer,
-				                 'INV3_PreprocessLayer':INV3_PreprocessLayer,
-				       			}
-				model = load_m(BASE_PATH + '/' + file, file, custom_objects=custom_layers)
-		#If model is normal student
-		else:
-			model = load_m(PROPOSED_PATH + '/' + file, file)
-				
-		models[file]['model'] = model
+
+	print("[INFO] Loading Model: " + model_name)
+	if model_name != 'EnsembleModel':
+		model = load_m(model_path + model_name, model_name)
+	else:
+		custom_layers = {'EN_PreprocessLayer':EN_PreprocessLayer, 
+		                 'Dense_PreprocessLayer':Dense_PreprocessLayer,
+		                 'NN_PreprocessLayer':NN_PreprocessLayer,
+		                 'INV3_PreprocessLayer':INV3_PreprocessLayer,
+		       			}
+		model = load_m(model_path + model_name, model_name, custom_objects=custom_layers)
+
+	models[model_name]['model'] = model
 
 	return models
 
@@ -104,3 +95,32 @@ def load_m(directory, model_name, custom_objects=None):
         exit() 
     model = load_model(directory + "/" + model_name + ".h5", custom_objects=custom_objects)
     return model
+
+ #DATA GENERATORS
+def create_data_generator(data_path, input_shape=(224,224), batch_size=4, pre_process=None):
+    print("INPUT SIZE -->", input_shape)
+    print("BATCH SIZE -->", batch_size)
+
+    nb_samples = 0
+    generator = None
+
+    datagen = ImageDataGenerator(preprocessing_function=pre_process)
+    
+    if not os.path.exists(data_path):
+        print("DATA DOES NOT EXITS!")
+    else:
+        print("LOADING SAMPLES from ", data_path, "...")
+        generator = datagen.flow_from_directory(
+                data_path,
+                target_size=input_shape,
+                batch_size=batch_size,
+                class_mode='categorical',
+                seed=42,
+                shuffle=False)
+
+        #CHECK  THE NUMBER OF SAMPLES
+        nb_samples = len(generator.filenames)
+        if nb_samples == 0:
+            print("NO DATA please check the path! ", data_path)
+
+    return generator

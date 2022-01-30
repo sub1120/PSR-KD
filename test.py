@@ -5,7 +5,8 @@ import tensorflow as tf
 
 #Import custom modules
 from utils.cam_utils import get_img_array, get_superimposed_image, gen_cam
-from utils.load_utils import init_models
+from utils.load_utils import init_models, create_data_generator
+from utils.eval_utils import evaluate, cost_compute
 
 #Import other required modules
 import matplotlib.pyplot as plt
@@ -14,8 +15,19 @@ import numpy as np
 import cv2
 
 #Define Constants
+BATCH_SIZE = 4
+NUM_CLASSES = 199
 FONT_SIZE = 10
 DPI = 600
+
+#Set model paths
+MODEL_PATH = 'models/'
+
+#SET DATA PATHS
+MAIN_DATA_DIR = "ds/"
+TRAIN_DATA_DIR = MAIN_DATA_DIR + "train/"
+TEST_DATA_DIR = MAIN_DATA_DIR + "test/"
+VALIDATION_DATA_DIR = MAIN_DATA_DIR + "val/"
 
 #Input Modes
 MODES = ['IMAGE MODE', 'VIDEO MODE']
@@ -43,8 +55,7 @@ def softmax(arr):
 		arr[i] = ex/np.sum(ex)
 	return arr
 
-
-def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_camerascam, is_guidedbp, input_files, enable_gpu):
+def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_camerascam, is_guidedbp, input_files, enable_gpu):
 	
 	#Check gpu availability
 	if enable_gpu:
@@ -59,7 +70,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 	index_class = index_class_dict()
 
 	#Load required model
-	all_models = init_models([model_name])
+	all_models = init_models(MODEL_PATH, model_name)
 	model = all_models[model_name]['model']
 	model.layers[-1].activation = None
 
@@ -135,7 +146,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 		j = 1
 		#Plot Original Image
 		plt.subplot(rows, cols, i + j)
-		plt.title("Prediction: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
+		#plt.title("Prediction: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
 		plt.imshow(org_img/255.0)
 		plt.xticks([])
 		plt.yticks([])
@@ -148,7 +159,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 			plt.imshow(gradcam_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			plt.title("Grad-CAM", fontsize=FONT_SIZE)
+			#plt.title("Grad-CAM", fontsize=FONT_SIZE)
 			j += 1
 				
 		if is_gradcamplus:
@@ -157,7 +168,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 			plt.imshow(gradcampp_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			plt.title("Grad-Cam++", fontsize=FONT_SIZE)
+			#plt.title("Grad-Cam++", fontsize=FONT_SIZE)
 			j += 1
 		
 		if is_f_scorecam:
@@ -166,7 +177,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 			plt.imshow(f_scorecam_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
+			#plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
 			j += 1
 
 		if is_scorecam:
@@ -175,7 +186,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 			plt.imshow(scorecam_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			plt.title("Score-Cam", fontsize=FONT_SIZE)
+			#plt.title("Score-Cam", fontsize=FONT_SIZE)
 			j += 1
 					
 		if is_camerascam:
@@ -184,7 +195,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 			plt.imshow(cameras_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			plt.title("Cameras-Cam", fontsize=FONT_SIZE)
+			#plt.title("Cameras-Cam", fontsize=FONT_SIZE)
 			j += 1
 
 		if is_guidedbp:
@@ -192,7 +203,7 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 			plt.imshow(cam_images[file_name]['guidedbp'])
 			plt.xticks([])
 			plt.yticks([])
-			plt.title("Guided-Bp", fontsize=FONT_SIZE)
+			#plt.title("Guided-Bp", fontsize=FONT_SIZE)
 			j += 1
 			
 		i += (cam_count + 1)
@@ -202,3 +213,40 @@ def main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorecam, is_
 	plt.close('all')
 					
 	print("[INFO] Done.")
+
+
+def evaluate_model(model_name, enable_gpu):
+	#Check gpu availability
+	if enable_gpu:
+		gpus = len(tf.config.list_physical_devices('GPU'))
+		print('[INFO] Tensorflow recognized {} GPUs'.format(gpus))
+	else:
+		tf.config.set_visible_devices([], 'GPU')
+
+	#Load required model
+	all_models = init_models(MODEL_PATH, model_name)
+	model = all_models[model_name]['model']
+
+	#compute cost
+	print("\n[INFO] Model Cost")
+	cost_compute(MODEL_PATH + model_name + '/' + model_name + '.h5')
+
+	#Set preprocessing
+	preprocess_func = all_models[model_name]['preprocess_func']
+	image_size = all_models[model_name]['image_size']
+
+	#Test on Validation data
+	print("\n[INFO] Model Validation ")
+	validation_generator = create_data_generator(data_path=VALIDATION_DATA_DIR, 
+													input_shape=image_size, 
+													batch_size=BATCH_SIZE, 
+													pre_process=preprocess_func)
+	evaluate(model, validation_generator)
+	
+	#Test on Test data
+	print("\n[INFO] Model Testing ")
+	test_generator = create_data_generator(data_path=TEST_DATA_DIR, 
+												input_shape=image_size, 
+												batch_size=BATCH_SIZE, 
+												pre_process=preprocess_func)
+	evaluate(model, test_generator)		

@@ -1,13 +1,14 @@
 import tkinter as tk
-from test import main
+from test import produce_cam
+from test import evaluate_model
 import argparse
 
 #Input Modes
-MODES = ['IMAGE MODE']
+MODES = ['OBTAIN CAMS', 'TEST MODELS']
 
 #List all model files
 #List all model names
-BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'MiniMobileNetV2', 'EnsembleModel']
+BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'EnsembleModel']
 PROPOSED_FILES = ['MiniMobileNetV2', 'MiniMobileNetV2-KD']
 MODEL_FILES = BASE_FILES + PROPOSED_FILES
 FONT = 'Helvetica 10 underline'
@@ -22,7 +23,7 @@ class ChooseInput:
 		self.l1.grid(row=0, column =0, pady = 4)
 
 		self.droptext1 = tk.StringVar()
-		self.droptext1.set("IMAGE MODE")
+		self.droptext1.set("OBTAIN CAMS")
 		self.drop1 = tk.OptionMenu(root , self.droptext1 , *MODES, command=self.validate1)
 		self.drop1.grid(row=1, column =0, pady = 1, padx = 5)
 
@@ -128,12 +129,22 @@ class ChooseInput:
 		self.labletext.set(str(len(self.input_files)) + " Selected")
 		
 		#Enable START button if atleast one input selected
-		if len(self.input_files) > 0:
+		if len(self.input_files) > 0 and self.is_selected:
 			self.b2.config( state= 'normal')
 
 	def validate1(self, ele):
-		self.b1.config( state= 'normal')
-		self.b2.config(state='disabled')
+		is_eval = False
+		state = 'normal'
+		if self.droptext1.get() == 'TEST MODELS':
+			is_eval = True
+			state = 'disabled'
+
+		if not is_eval:
+			self.b1.config( state= 'normal')
+			self.b2.config(state='disabled')
+		else:
+			self.b1.config( state= 'disabled')
+			self.b2.config(state='normal')
 
 		#Uncheck all checkboxes
 		self.check1.set(False)
@@ -144,19 +155,19 @@ class ChooseInput:
 		self.check6.set(False)
 		
 		#Enable all checkboxes
-		self.cb1.config( state= 'normal')
-		self.cb2.config( state= 'normal')
-		self.cb3.config( state= 'normal')
-		self.cb4.config( state= 'normal')
-		self.cb5.config( state= 'normal')
-		self.cb6.config( state= 'normal')
+		self.cb1.config(state=state)
+		self.cb2.config(state=state)
+		self.cb3.config(state=state)
+		self.cb4.config(state=state)
+		self.cb5.config(state=state)
+		self.cb6.config(state=state)
 
 	def validate2(self):
-		is_selected = self.check1.get() or self.check2.get() or self.check3.get() or self.check4.get() or self.check5.get() or self.check6.get()
+		self.is_selected = self.check1.get() or self.check2.get() or self.check3.get() or self.check4.get() or self.check5.get() or self.check6.get()
 
 	def validate3(self, ele):
 		#Disable Checkbox in case of Ensenble model
-		if self.droptext2.get() == 'EnsembleModel':
+		if self.droptext2.get() == 'EnsembleModel' or self.droptext1.get() == 'TEST MODELS':
 			self.cb1.config( state= 'disabled')
 			self.cb2.config( state= 'disabled')
 			self.cb3.config( state= 'disabled')
@@ -185,6 +196,7 @@ class ChooseInput:
 
 		#Get arguments
 		input_files = self.input_files
+		mode = self.droptext1.get()
 		model_name = self.droptext2.get()
 		is_gradcam = self.check1.get()
 		is_gradcamplus = self.check2.get()
@@ -200,15 +212,17 @@ class ChooseInput:
 				'CAMERAS-Cam':is_camerascam,
 				'Guided BP':is_guidedbp}
 
-		print("-----------------------------------------------")
-		print("[INFO] Input Summary")
-		print(" 1.Input Mode: Image Mode")
-		print(" 2.Model Name: ", model_name)
-		print(" 3.CAMs Selected:", [k for k in cams.keys() if cams[k]])
-		print(" 4.Images Selected:", [f.split('/')[-1] for f in input_files])
-		print("------------------------------------------------")
-		main(model_name, is_gradcam, is_gradcamplus, is_f_scorecam,
-						is_scorecam, is_camerascam, is_guidedbp, input_files, enable_gpu)
+		if mode != 'TEST MODELS':
+			print("-----------------------------------------------")
+			print("[INFO] Input Summary")
+			print(" 1.Model Name: ", model_name)
+			print(" 2.CAMs Selected:", [k for k in cams.keys() if cams[k]])
+			print(" 3.Images Selected:", [f.split('/')[-1] for f in input_files])
+			print("------------------------------------------------")
+			produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam,
+					is_scorecam, is_camerascam, is_guidedbp, input_files, enable_gpu)
+		else:
+			evaluate_model(model_name, enable_gpu)
 
 if __name__ == "__main__":
 	print("[INFO] Opening GUI")
@@ -218,3 +232,4 @@ if __name__ == "__main__":
 	root.geometry("")
 	my_gui = ChooseInput(root)
 	root.mainloop()
+	print("[INFO] Closing GUI")
