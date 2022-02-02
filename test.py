@@ -36,7 +36,7 @@ MODES = ['IMAGE MODE', 'VIDEO MODE']
 def savefigure(directory, fig_name):
     if not os.path.exists(directory):
         os.makedirs(directory)
-    plt.savefig(directory + '/' + fig_name + '.png', bbox_inches='tight', dpi=DPI, format='png')
+    plt.savefig(directory + '/' + fig_name + '.tiff', bbox_inches='tight', dpi=DPI, format='tiff')
 
 #Create {index:classs_name} dictionary
 def index_class_dict():
