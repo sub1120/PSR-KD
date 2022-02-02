@@ -120,11 +120,7 @@ class ChooseInput:
 
 	def add_input_path(self):
 		#Openfile
-		input_path = tk.filedialog.askopenfilenames(title="Select an Image File", initialdir ='.\',filetypes=[
-                   																			("image", ".jpeg"),
-                   																			("image", ".png"),
-                   																			("image", ".jpg"),
-                   																			])
+		input_path = tk.filedialog.askopenfilenames(title="Select an Image File", initialdir ='.\',filetypes=[("image", ".jpeg"),("image", ".png"),("image", ".jpg")])
 		self.input_files.extend(input_path)
 		self.labletext.set(str(len(self.input_files)) + " Selected")
 		
