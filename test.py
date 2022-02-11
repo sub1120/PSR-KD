@@ -18,7 +18,7 @@ import cv2
 BATCH_SIZE = 4
 NUM_CLASSES = 199
 FONT_SIZE = 10
-DPI = 600
+DPI = 300
 
 #Set model paths
 MODEL_PATH = 'models/'
