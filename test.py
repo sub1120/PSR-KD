@@ -1,6 +1,9 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.applications import NASNetLarge, NASNetMobile
+from tensorflow.keras.models import Model
 import tensorflow as tf
 
 #Import custom modules
@@ -74,6 +77,12 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 	model = all_models[model_name]['model']
 	model.layers[-1].activation = None
 
+	change_input_shape = None
+	if model_name == 'NASNetLarge':
+		change_input_shape = get_change_input_func(NASNetLarge)
+	elif model_name == 'NASNetMobile':
+		change_input_shape = get_change_input_func(NASNetMobile)
+
 	#Set preprocessing
 	preprocess_func = all_models[model_name]['preprocess_func']
 	image_size = all_models[model_name]['image_size']
@@ -122,7 +131,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 			cam_images[file_name]['scorecam'] = gen_cam(cam_type='scorecam', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)
 		#CAMERAS
 		if is_camerascam:
-			cam_images[file_name]['cameras'] = gen_cam(cam_type='cameras', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)
+			cam_images[file_name]['cameras'] = gen_cam(cam_type='cameras', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index, change_input_shape=change_input_shape)
 
 		if is_guidedbp:
 			cam_images[file_name]['guidedbp'] = gen_cam(cam_type='guidedbp', model=model, image_array=image_array, label_index=pred_index, activation_layer_index=activation_layer_index)
@@ -250,3 +259,18 @@ def evaluate_model(model_name, enable_gpu):
 												batch_size=BATCH_SIZE, 
 												pre_process=preprocess_func)
 	evaluate(model, test_generator)		
+
+def get_change_input_func(model_api_func):
+	def change_input_shape1(model, new_input_tensor):
+		#Define new model with changed input shape
+		transfer = model_api_func(include_top = False, weights=None, input_tensor=new_input_tensor)
+		x = GlobalAveragePooling2D()(transfer.layers[-1].output)
+		x = Dropout(0.5)(x)
+		outputs = Dense(NUM_CLASSES)(x)
+		#Load weights into new model
+		model_weights =  model.get_weights()
+		new_model = Model(inputs = transfer.inputs, outputs = outputs)
+		new_model.set_weights(model_weights)   
+		return new_model
+
+	return change_input_shape1

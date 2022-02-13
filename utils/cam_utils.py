@@ -24,7 +24,7 @@ def numpy_error_handler(type, flag):
 np.seterrcall(numpy_error_handler)
 
 #CAMERAS Function
-def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None, label_index=None, activation_modifier=None):
+def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None, label_index=None, activation_modifier=None, change_input_shape=None):
 	"""Args:
 		 model: A tensorflow.keras.Model object, 
 				The model
@@ -61,7 +61,7 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 	for i, input_resolution in enumerate(input_resolutions):
 		#Change the model input to current input_resolution
 		input_tensors = Input(shape=(input_resolution, input_resolution, 3))
-		new_model = tf.keras.models.clone_model(model, input_tensors=input_tensors, clone_function=None)
+		new_model = change_input_shape(model, new_input_tensor=input_tensors)
 		new_model.set_weights(model.get_weights())
 
 		#Resize image to current input_resolution
@@ -112,7 +112,7 @@ def cameras_cam(model, image_array, penultimate_layer=-1, input_resolutions=None
 	return cam
 
 #Generate Cam Wrapper Function for all Cams
-def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=None):
+def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=None, change_input_shape=None):
 	"""Args:
 		cam_type: A str
 			Available options are 'gradcam', 'gradcampp', 'scorecam', cameras.
@@ -169,7 +169,8 @@ def gen_cam(cam_type, model, image_array, activation_layer_index, label_index=No
 		heatmap = cameras_cam(model=model, 
 									image_array=image_array,
 									penultimate_layer=activation_layer_index,
-									label_index=label_index
+									label_index=label_index,
+									change_input_shape=change_input_shape
 									)
 	elif cam_type == 'guidedbp':
 		heatmap = guidedBP(model=model, 
