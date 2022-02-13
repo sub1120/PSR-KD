@@ -18,7 +18,7 @@ import cv2
 BATCH_SIZE = 4
 NUM_CLASSES = 199
 FONT_SIZE = 10
-DPI = 600
+DPI = 300
 
 #Set model paths
 MODEL_PATH = 'models/'
@@ -146,7 +146,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 		j = 1
 		#Plot Original Image
 		plt.subplot(rows, cols, i + j)
-		#plt.title("Prediction: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
+		plt.title("Prediction: " + index_class[pred_index] +' ('+score+')', fontsize=FONT_SIZE)
 		plt.imshow(org_img/255.0)
 		plt.xticks([])
 		plt.yticks([])
@@ -159,7 +159,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 			plt.imshow(gradcam_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			#plt.title("Grad-CAM", fontsize=FONT_SIZE)
+			plt.title("Grad-CAM", fontsize=FONT_SIZE)
 			j += 1
 				
 		if is_gradcamplus:
@@ -168,7 +168,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 			plt.imshow(gradcampp_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			#plt.title("Grad-Cam++", fontsize=FONT_SIZE)
+			plt.title("Grad-Cam++", fontsize=FONT_SIZE)
 			j += 1
 		
 		if is_f_scorecam:
@@ -177,7 +177,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 			plt.imshow(f_scorecam_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			#plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
+			plt.title("Faster Score-Cam", fontsize=FONT_SIZE)
 			j += 1
 
 		if is_scorecam:
@@ -186,7 +186,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 			plt.imshow(scorecam_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			#plt.title("Score-Cam", fontsize=FONT_SIZE)
+			plt.title("Score-Cam", fontsize=FONT_SIZE)
 			j += 1
 					
 		if is_camerascam:
@@ -195,7 +195,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 			plt.imshow(cameras_super_img)
 			plt.xticks([])
 			plt.yticks([])
-			#plt.title("Cameras-Cam", fontsize=FONT_SIZE)
+			plt.title("Cameras-Cam", fontsize=FONT_SIZE)
 			j += 1
 
 		if is_guidedbp:
@@ -203,7 +203,7 @@ def produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam, is_scorec
 			plt.imshow(cam_images[file_name]['guidedbp'])
 			plt.xticks([])
 			plt.yticks([])
-			#plt.title("Guided-Bp", fontsize=FONT_SIZE)
+			plt.title("Guided-Bp", fontsize=FONT_SIZE)
 			j += 1
 			
 		i += (cam_count + 1)

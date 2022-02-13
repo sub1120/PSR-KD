@@ -120,7 +120,7 @@ class ChooseInput:
 
 	def add_input_path(self):
 		#Openfile
-		input_path = tk.filedialog.askopenfilenames(title="Select an Image File", initialdir ='.\',filetypes=[("image", ".jpeg"),("image", ".png"),("image", ".jpg")])
+		input_path = tk.filedialog.askopenfilenames(title="Select an Image File", initialdir ='./', filetypes=[("image", ".jpeg"), ("image", ".png"), ("image", ".jpg")])
 		self.input_files.extend(input_path)
 		self.labletext.set(str(len(self.input_files)) + " Selected")
 		
@@ -213,7 +213,7 @@ class ChooseInput:
 			print("[INFO] Input Summary")
 			print(" 1.Model Name: ", model_name)
 			print(" 2.CAMs Selected:", [k for k in cams.keys() if cams[k]])
-			print(" 3.Images Selected:", [f.split('\')[-1] for f in input_files])
+			print(" 3.Images Selected:", [f.split('/')[-1] for f in input_files])
 			print("------------------------------------------------")
 			produce_cam(model_name, is_gradcam, is_gradcamplus, is_f_scorecam,
 					is_scorecam, is_camerascam, is_guidedbp, input_files, enable_gpu)
