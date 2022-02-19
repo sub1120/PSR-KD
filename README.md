@@ -52,7 +52,8 @@ To run script with GPU, use below command
 ### Sample Output
 |     Model Name      |   Output|
 | ------------------- | --------|
-| CoMMon (Best Student) | |
+| ComMoN (Best Student) | |
 
 **Note1:** CAMERAS will take a while to generate cams.
+
 **Note2:** For NasNetLarge & NasNetMobile use legacy-cameras branch to produce cameras cams.
