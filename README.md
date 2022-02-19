@@ -12,13 +12,14 @@ This repository serves as a supplementary for a research article submitted for p
 
 ## Requirements
 - Python 3.7.7
-- tensorflow 2.5.0
-- tf-keras-vis 0.6.2
-- keras-flops 0.1.2
-- matplotlib 3.4.2
-- opencv-python 4.5.2.54
-- numpy 1.19.5
-- tqdm 4.61.1
+- tensorflow == 2.7.0
+- tf-keras-vis == 0.6.2
+- matplotlib == 3.5.1
+- opencv-python==4.5.5.62
+- numpy == 1.21.5
+- tqdm == 4.62.3
+- scikit-learn == 1.0.2
+- Pillow == 9.0.1
 
 Use following command
 ```pip install -r requirements.txt```
@@ -31,11 +32,11 @@ Use following command
     4. *ensemble.py*: Defined functions to make ensemble model.
     5. *eval_utils.py*: All other required functions are defined here.
 - *notebooks :* Contains all Training, Evaluation and Other Notebooks.
-- *test.py :* A simple script to try our all models, usage is defined below. 
-- *gui.py :* GUI Script.
+- *test.py :* A simple script to test our all models. 
+- *gui.py :* GUI Scode.
 - *inference.py :* Calculate inference time.
-- models : All trained models. [models drive link](https://drive.google.com/drive/folders/1gwIjRJpe0_Qdcl9JMxfxNz191klWTFka?usp=sharing)
-- ds : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1HUP62HfK24o-G0KLshGGVCG44-dX2b3E?usp=sharing)
+- models : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
+- ds : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1uhZaogn_ksJuppiCPH_0xIGqpLywp8QT?usp=sharing)
 
 ## Usage
 Below command will open a Interface for testing our models.
@@ -51,6 +52,7 @@ To run script with GPU, use below command
 ### Sample Output
 |     Model Name      |   Output|
 | ------------------- | --------|
-| KD-EfficientNetB0 (Best Student) | ![Output](https://github.com/sub1120/PSR-KD/blob/master/out/Cams/KD-EfficientNetB0.png) |
+| CoMMon (Best Student) | |
 
-**Note:** CAMERAS will take a while.
+**Note1:** CAMERAS will take a while to generate cams.
+**Note2:** For NasNetLarge & NasNetMobile use legacy-cameras branch to produce cameras cams.
