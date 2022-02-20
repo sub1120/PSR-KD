@@ -35,8 +35,8 @@ Use following command
 - *test.py :* A simple script to test our all models. 
 - *gui.py :* GUI Scode.
 - *inference.py :* Calculate inference time.
-- models : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
-- ds : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1uhZaogn_ksJuppiCPH_0xIGqpLywp8QT?usp=sharing)
+- *models* : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
+- *ds* : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1uhZaogn_ksJuppiCPH_0xIGqpLywp8QT?usp=sharing)
 
 ## Usage
 Below command will open a Interface for testing our models.
