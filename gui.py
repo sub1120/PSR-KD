@@ -9,8 +9,8 @@ MODES = ['OBTAIN CAMS', 'TEST MODELS']
 #List all model files
 #List all model names
 BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'EnsembleModel']
-PROPOSED_FILES = ['MiniMobileNetV2', 'MiniMobileNetV2-KD']
-MODEL_FILES = BASE_FILES + PROPOSED_FILES
+PROPOSED_FILES = ['KD-ComMoN', 'ComMoN']
+MODEL_FILES = PROPOSED_FILES + BASE_FILES
 FONT = 'Helvetica 10 underline'
 
 class ChooseInput:
@@ -19,7 +19,7 @@ class ChooseInput:
 		self.root.title("PSR Choose Input")
 
 		#Select Mode
-		self.l1 = tk.Label(master=root, text="Input Mode", fg="blue", font=FONT)
+		self.l1 = tk.Label(master=root, text="Use Case", fg="blue", font=FONT)
 		self.l1.grid(row=0, column =0, pady = 4)
 
 		self.droptext1 = tk.StringVar()
@@ -32,12 +32,12 @@ class ChooseInput:
 		self.l2.grid(row=0, column =1, pady = 4)
 
 		self.droptext2 = tk.StringVar()
-		self.droptext2.set("MiniMobileNetV2-KD")
+		self.droptext2.set("KD-ComMoN")
 		self.drop2 = tk.OptionMenu(root , self.droptext2 , *MODEL_FILES, command=self.validate3)
 		self.drop2.grid(row=1, column =1, padx = 5)
 
 		#Select Cams
-		self.l3 = tk.Label(master=root, text="Select CAM/CAMs", fg="blue", font=FONT)
+		self.l3 = tk.Label(master=root, text="Select CAMs", fg="blue", font=FONT)
 		self.l3.grid(row=3, column =0, pady = 5, columnspan = 2)
 
 		self.check1 = tk.BooleanVar()  
