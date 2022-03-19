@@ -24,8 +24,8 @@ import os
 
 #List all model names
 BASE_FILES = ['DenseNet201', 'EfficientNetB7', 'InceptionResNetV2', 'ResNet50V2', 'ResNet152V2', 'NASNetLarge', 'Xception', 'InceptionV3', 'DenseNet121', 'EfficientNetB0', 'NASNetMobile', 'MobileNetV2', 'EnsembleModel']
-PROPOSED_FILES = ['MiniMobileNetV2', 'MiniMobileNetV2-KD']
-MODEL_FILES = BASE_FILES + PROPOSED_FILES
+PROPOSED_FILES = ['KD-ComMoN', 'ComMoN']
+MODEL_FILES = PROPOSED_FILES + BASE_FILES
 
 #Load models function
 def init_models(model_path, model_name):
@@ -50,8 +50,8 @@ def init_models(model_path, model_name):
 	models['ResNet50V2']['preprocess_func'] = resnet_v2.preprocess_input
 	models['MobileNetV2']['preprocess_func'] = mobilenet_v2.preprocess_input
 	models['NASNetMobile']['preprocess_func'] = nasnet.preprocess_input
-	models['MiniMobileNetV2']['preprocess_func'] = mobilenet_v2.preprocess_input
-	models['MiniMobileNetV2-KD']['preprocess_func'] = mobilenet_v2.preprocess_input
+	models['ComMoN']['preprocess_func'] = mobilenet_v2.preprocess_input
+	models['KD-ComMoN']['preprocess_func'] = mobilenet_v2.preprocess_input
 
 	#Set input size of models
 	models['DenseNet201']['image_size'] = (224, 224)
@@ -66,8 +66,8 @@ def init_models(model_path, model_name):
 	models['ResNet50V2']['image_size'] = (224, 224)
 	models['MobileNetV2']['image_size'] = (224, 224)
 	models['NASNetMobile']['image_size'] = (224, 224)
-	models['MiniMobileNetV2']['image_size'] = (224, 224)
-	models['MiniMobileNetV2-KD']['image_size'] = (224, 224)
+	models['ComMoN']['image_size'] = (224, 224)
+	models['KD-ComMoN']['image_size'] = (224, 224)
 	models['EnsembleModel']['image_size'] = (224, 224)
 
 	model = None
