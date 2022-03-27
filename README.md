@@ -1,13 +1,12 @@
-<!-- # Automated Shorthand Recognition using Optimized DNNs
-This repository contains code used in our paper ***"Automated Shorthand Writing Recognition using an Optimized Knowledge Distilled Fine-Tuned Deep Convolutional Neural Network"*** (under review). -->
+# Automated Shorthand Recognition using Optimized DNNs
+This repository contains code used in our paper ***"A Machine-Driven Pitman Shorthand Writing Recognition Model using a Compressed Mobile Network with Knowledge Distillation and Grid-search Optimization"*** (under review). It also has serves as a supplementary for a research article submitted for publication. Please contact us before using any material in this repository.
 
 
 **Authors:** Subham Sahu, Dr. Francis Jesmar P. Montalbo, Yogesh Kumar Vishwakarma, Jeevanlal Kori.
 
-This repository serves as a supplementary for a research article submitted for publication. Please contact us before using any material in this repository.
 
-# GRAPHICAL ABSTRACT
 
+![Abstract](https://github.com/sub1120/PSR-KD/blob/master/Graphical%20Abstract.png)
 
 
 ## Requirements
