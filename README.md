@@ -6,7 +6,7 @@ This repository contains code used in our paper ***"A Machine-Driven Pitman Shor
 
 
 
-![Abstract](https://github.com/sub1120/PSR-KD/blob/master/Graphical%20Abstract.png)
+![Abstract](https://github.com/sub1120/PSR-KD/blob/master/assets/Graphical%20Abstract.png)
 
 
 ## Requirements
