@@ -27,9 +27,8 @@ Use following command
 - *utils/ :* Defined all Custom functions required for Evaluation of Approach.  
     1. *load_utils.py*: Defined functions to load trained models.
     2. *cam_utils.py*: Defined functions to produce CAMs.
-    3. *plot_utils.py*: Defined functions to draw evaluation plots.
-    4. *ensemble.py*: Defined functions to make ensemble model.
-    5. *eval_utils.py*: All other required functions are defined here.
+    3. *ensemble.py*: Defined functions to make ensemble model.
+    4. *eval_utils.py*: All other required functions are defined here.
 - *notebooks :* Contains all Training, Evaluation and Other Notebooks.
 - *test.py :* A simple script to test our all models. 
 - *gui.py :* GUI Scode.
