@@ -44,14 +44,8 @@ To run script with GPU, use below command
 > ```python gui.py -g```
 
 ## Interface Guide
-<!-- blank line -->
-<figure class="video_container">
-  <video controls="true" allowfullscreen="true">
-    <source src="https://github.com/sub1120/PSR-KD/blob/master/assets/Demo%20Video.mp4" type="video/mp4">
-    <source src="https://github.com/sub1120/PSR-KD/blob/master/assets/DemoVideo.webm" type="video/webm">
-  </video>
-</figure>
-<!-- blank line -->
+
+https://user-images.githubusercontent.com/43786036/162383581-13881c73-1a5f-4a3f-93a6-12da8ac14471.mov
 
 ### Sample Output
 |     Model Name      |   Output|
