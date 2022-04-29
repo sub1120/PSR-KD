@@ -22,6 +22,10 @@ Use following command
 ```pip install -r requirements.txt```
 
 ## Directories
+- *test.py :* Defined functions to test models. 
+- *gui.py :* Interface Design Code.
+- *models* : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
+- *ds* : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1uhZaogn_ksJuppiCPH_0xIGqpLywp8QT?usp=sharing)
 - *utils/ :* Defined all Custom functions required for Evaluation of Approach.  
     1. *load_utils.py*: Defined functions to load trained models.
     2. *cam_utils.py*: Defined functions to produce CAMs.
@@ -31,10 +35,6 @@ Use following command
     1. *proposed student/*: Contains proposed model training[with and withour KD] Notebooks.
     2. *teacher candidates/*: Contains teacher training Notebooks.
     3. *ROC_PR_AUC.ipynb*: Generate roc-pr plots. 
-- *test.py :* A simple script to test our all models. 
-- *gui.py :* GUI Scode.
-- *models* : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
-- *ds* : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1uhZaogn_ksJuppiCPH_0xIGqpLywp8QT?usp=sharing)
 
 ## Usage
 Below command will open a Interface for testing our models.
