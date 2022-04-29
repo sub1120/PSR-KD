@@ -27,7 +27,10 @@ Use following command
     2. *cam_utils.py*: Defined functions to produce CAMs.
     3. *ensemble.py*: Defined functions to make ensemble model.
     4. *eval_utils.py*: All other required functions are defined here.
-- *notebooks :* Contains all Training, Evaluation and Other Notebooks.
+- *notebooks/ :* Contains all Training, Evaluation and Other Notebooks.
+    1. *proposed student/*: Contains proposed model training[with and withour KD] Notebooks.
+    2. *teacher candidates/*: Contains teacher training Notebooks.
+    3. *ROC_PR_AUC.ipynb*: Generate roc-pr plots. 
 - *test.py :* A simple script to test our all models. 
 - *gui.py :* GUI Scode.
 - *models* : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
