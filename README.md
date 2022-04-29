@@ -41,6 +41,10 @@ Below command will open a Interface for testing our models.
 To run script with GPU, use below command
 > ```python gui.py -g```
 
+Two Use Cases of Interface are as follows 
+- To Evaluate models [Test Accuracy, Validation Accuracy, FLOPs Count, Parameters Count].
+- To Generate CAMs [Grad CAM, GradCam++, ScoreCam, Faster ScoreCam, Cameras, GuidedBP]
+
 ## Interface Guide
 
 https://user-images.githubusercontent.com/43786036/162383581-13881c73-1a5f-4a3f-93a6-12da8ac14471.mov
