@@ -1,12 +1,10 @@
 # Automated Shorthand Recognition using Optimized DNNs
-This repository contains code used in our paper ***"A Machine-Driven Pitman Shorthand Writing Recognition Model using a Compressed Mobile Network with Knowledge Distillation and Grid-search Optimization"*** (under review). It also has serves as a supplementary for a research article submitted for publication. Please contact us before using any material in this repository.
-
+This repository contains the supplementary files for our research article submitted for publication. 
+Please contact us before using any material in this repository.
 
 **Authors:** Subham Sahu, Dr. Francis Jesmar P. Montalbo, Yogesh Kumar Vishwakarma, Jeevanlal Kori.
 
-
-
-![Abstract](https://github.com/sub1120/PSR-KD/blob/master/assets/Graphical%20Abstract.png)
+![Graphical Abstract](https://user-images.githubusercontent.com/43786036/162385236-3fee82b7-bdc4-4dfe-ac44-a4498d85219c.png)
 
 
 ## Requirements
@@ -46,11 +44,6 @@ To run script with GPU, use below command
 ## Interface Guide
 
 https://user-images.githubusercontent.com/43786036/162383581-13881c73-1a5f-4a3f-93a6-12da8ac14471.mov
-
-### Sample Output
-|     Model Name      |   Output|
-| ------------------- | --------|
-| ComMoN (Best Student) | |
 
 **Note1:** CAMERAS will take a while to generate cams.
 
