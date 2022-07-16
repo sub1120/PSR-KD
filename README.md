@@ -22,16 +22,19 @@ Use following command
 ```pip install -r requirements.txt```
 
 ## Directories
+- *test.py :* Defined functions to test models. 
+- *gui.py :* Interface Design Code.
+- *models* : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
+- *ds* : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1uhZaogn_ksJuppiCPH_0xIGqpLywp8QT?usp=sharing)
 - *utils/ :* Defined all Custom functions required for Evaluation of Approach.  
     1. *load_utils.py*: Defined functions to load trained models.
     2. *cam_utils.py*: Defined functions to produce CAMs.
     3. *ensemble.py*: Defined functions to make ensemble model.
     4. *eval_utils.py*: All other required functions are defined here.
-- *notebooks :* Contains all Training, Evaluation and Other Notebooks.
-- *test.py :* A simple script to test our all models. 
-- *gui.py :* GUI Scode.
-- *models* : All trained models. [models drive link](https://drive.google.com/drive/folders/16lHHTsGacH6Ov6lxngxjHDl_pKzxfEuZ?usp=sharing)
-- *ds* : Dataset  folder. [dataset drive link](https://drive.google.com/drive/folders/1uhZaogn_ksJuppiCPH_0xIGqpLywp8QT?usp=sharing)
+- *notebooks/ :* Contains all Training, Evaluation and Other Notebooks.
+    1. *proposed student/*: Contains proposed model training[with and withour KD] Notebooks.
+    2. *teacher candidates/*: Contains teacher training Notebooks.
+    3. *ROC_PR_AUC.ipynb*: Generate roc-pr plots. 
 
 ## Usage
 Below command will open a Interface for testing our models.
@@ -40,6 +43,10 @@ Below command will open a Interface for testing our models.
 
 To run script with GPU, use below command
 > ```python gui.py -g```
+
+Two Use Cases of Interface are as follows 
+- To Evaluate models [Test Accuracy, Validation Accuracy, FLOPs Count, Parameters Count].
+- To Generate CAMs [Grad CAM, GradCam++, ScoreCam, Faster ScoreCam, Cameras, GuidedBP]
 
 ## Interface Guide
 
